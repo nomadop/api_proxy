@@ -39,3 +39,5 @@ gem 'spring',        group: :development
 # gem 'debugger', group: [:development, :test]
 
 gem 'geokit', git: 'https://github.com/geokit/geokit.git'
+
+gem 'faraday'
