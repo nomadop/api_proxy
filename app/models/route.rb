@@ -10,6 +10,8 @@ class Route < ActiveRecord::Base
 		Route.create(
 			origin: json_object.legs[0].start_address,
 			destination: json_object.legs[0].end_address,
+			distance: json_object.legs[0].distance.value,
+			duration: json_object.legs[0].duration.value,
 			markers: json_object.legs[0].steps.map do |step|
 				step.start_location.as_json.values.join(',')
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(','),
@@ -20,8 +22,12 @@ class Route < ActiveRecord::Base
 		)
 	end
 
-	def travel_modes
-		steps.map(&:travel_mode).uniq
+	def step_numbers
+		steps.size
+	end
+
+	def overview
+		steps.map{|step| step.transit_details[:name]}.compact.join(' => ')
 	end
 
 	def map

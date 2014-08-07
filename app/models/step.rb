@@ -5,6 +5,7 @@ class Step < ActiveRecord::Base
 	serialize :transit_details, Hash
 	serialize :html_instructions, Array
 	belongs_to :routes
+	default_scope { order(:step_number) }
 
 	def self.create_by_json json_object, number
 		Step.create(

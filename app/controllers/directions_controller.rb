@@ -4,11 +4,9 @@ class DirectionsController < ApplicationController
   def staticmap
     route = @direction.routes[params[:route_id].to_i - 1]
     step = route.steps[params[:step_id].to_i - 1] if params[:step_id]
-    if step
-      redirect_to step.map.url
-    else
-      redirect_to route.map.url
-    end
+    base = step || route
+
+    redirect_to base.map.url
   end
 
   # GET /directions
@@ -80,6 +78,8 @@ class DirectionsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def direction_params
-      params.require(:direction).permit(:origin, :destination, :status, :options)
+      dparams = params.require(:direction).permit(:origin, :destination, :status, :options)
+      dparams[:options] = JSON.parse(dparams[:options])
+      dparams
     end
 end

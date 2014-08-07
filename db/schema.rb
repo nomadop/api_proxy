@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140807060322) do
+ActiveRecord::Schema.define(version: 20140807073036) do
 
   create_table "directions", force: true do |t|
     t.string   "origin"
@@ -31,6 +31,8 @@ ActiveRecord::Schema.define(version: 20140807060322) do
     t.string   "map_uid"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "distance"
+    t.integer  "duration"
   end
 
   create_table "steps", force: true do |t|
