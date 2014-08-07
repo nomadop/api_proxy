@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
 
-  resources :directions
+  resources :directions do
+    member do
+      get ':route_id' => 'direction#staticmap'
+      get ':route_id/:step_id' => 'direction#staticmap'
+    end
+  end
 
   get 'geocode/latlng'
 

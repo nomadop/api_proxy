@@ -1,5 +1,15 @@
 class DirectionsController < ApplicationController
-  before_action :set_direction, only: [:show, :edit, :update, :destroy]
+  before_action :set_direction, only: [:show, :edit, :update, :destroy, :staticmap]
+
+  def staticmap
+    route = @direction.routes[params[:route_id]]
+    step = route.steps[params[:step_id]] if params[:step_id]
+    if step
+      redirect_to step.map.url
+    else
+      redirect_to route.map.url
+    end
+  end
 
   # GET /directions
   # GET /directions.json
