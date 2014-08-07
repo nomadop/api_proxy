@@ -1,4 +1,5 @@
-source 'https://rubygems.org'
+# source 'https://rubygems.org'
+source 'http://ruby.taobao.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
@@ -41,3 +42,5 @@ gem 'spring',        group: :development
 gem 'geokit', git: 'https://github.com/geokit/geokit.git'
 
 gem 'faraday'
+
+gem 'dragonfly', '~> 1.0.5'

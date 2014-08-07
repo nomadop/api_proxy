@@ -8,10 +8,10 @@ class JSONObject
 	end
 
 	def __attrs__
-		self.instance_variables.map{|s| s[1..-1].to_sym}
+		self.instance_variables.map{|var| var[1..-1].to_sym}
 	end
 
-	def method_missing name
+	def method_missing name, *args, &block
 		nil
 	end
 

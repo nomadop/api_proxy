@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Origin:</strong>
+  <%= @direction.origin %>
+</p>
+
+<p>
+  <strong>Destination:</strong>
+  <%= @direction.destination %>
+</p>
+
+<p>
+  <strong>Status:</strong>
+  <%= @direction.status %>
+</p>
+
+<p>
+  <strong>Options:</strong>
+  <%= @direction.options %>
+</p>
+
+<%= link_to 'Edit', edit_direction_path(@direction) %> |
+<%= link_to 'Back', directions_path %>

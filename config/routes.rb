@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :directions
+
   get 'geocode/latlng'
 
   # The priority is based upon order of creation: first created -> highest priority.
