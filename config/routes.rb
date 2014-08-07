@@ -2,8 +2,8 @@ Rails.application.routes.draw do
 
   resources :directions do
     member do
-      get ':route_id' => 'directions#staticmap'
-      get ':route_id/:step_id' => 'directions#staticmap'
+      get ':route_id/staticmap' => 'directions#staticmap'
+      get ':route_id/:step_id/staticmap' => 'directions#staticmap'
     end
   end
 
