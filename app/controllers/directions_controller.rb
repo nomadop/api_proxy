@@ -18,7 +18,7 @@ class DirectionsController < ApplicationController
   # GET /directions/1
   # GET /directions/1.json
   def show
-    @direction.search if @direction.status == 'New'
+    @direction.search unless @direction.status == 'OK' || @direction.status == 'Searching'
   end
 
   # GET /directions/new

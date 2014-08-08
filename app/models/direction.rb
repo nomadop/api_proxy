@@ -8,6 +8,7 @@ class Direction < ActiveRecord::Base
 		return false if status == 'Searching'
 		self.update(status: 'Searching')
 		result = GoogleMaps.direction(origin, destination, options)
+		result = GoogleMaps.direction(origin, destination, options.merge({mode: 'driving'})) if result.status == 'ZERO_RESULTS'
 		result.routes.each do |route|
 			routes.create_by_json(route)
 		end
