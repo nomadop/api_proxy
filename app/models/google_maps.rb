@@ -3,7 +3,7 @@
 module GoogleMaps
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
-		PROXY = 'http://127.0.0.1:8087'
+		PROXY = ''
 
 		def self.direction o_name, d_name, opts = {}
 			conn = Conn.init(HOST) do |c|
