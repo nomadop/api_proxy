@@ -21,7 +21,7 @@ class Conn
 			send(method, *args, &block)
 		rescue Faraday::TimeoutError => e
 			try(method, *args, &block)
-		rescue Faraday::ConnectionError => e
+		rescue Faraday::ConnectionFailed => e
 			try(method, *args, &block)
 		end
 	end

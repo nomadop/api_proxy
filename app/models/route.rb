@@ -43,6 +43,6 @@ class Route < ActiveRecord::Base
 		end
 
 		def get_staticmap
-			self.map = GoogleMaps.staticmap([markers.first, markers.last], path, :data)
+			self.map = GoogleMaps::Wraper.staticmap([markers.first, markers.last], path, :data)
 		end
 end

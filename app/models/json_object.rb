@@ -29,5 +29,4 @@ class JSONObject
 			value										
 		end
 	end
-
 end

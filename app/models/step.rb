@@ -53,6 +53,6 @@ class Step < ActiveRecord::Base
 		end
 
 		def get_staticmap
-			self.map = GoogleMaps.staticmap([start_location, end_location], path, :data, size: '200x200')
+			self.map = GoogleMaps::Wraper.staticmap([start_location, end_location], path, :data, size: '200x200')
 		end
 end
