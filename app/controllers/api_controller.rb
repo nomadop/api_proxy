@@ -10,7 +10,7 @@ class ApiController < ApplicationController
 				opts.delete(:d)
 				direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
 				data = if params[:map] == 'true'
-					direction.as_json(methods: :staticmap)
+					direction.as_json(methods: [:step_numbers, :overview, :staticmap])
 				else
 					direction.as_json
 				end

@@ -127,7 +127,10 @@ module GoogleMaps
 		end
 
 		def overview
-			@steps.map{|step| step.overview}.compact.join(' => ')
+			@steps.inject([]) do |arr, step| 
+				arr << step.overview if arr.last != step.overview
+				arr
+			end.compact.join(' => ')
 		end
 	end
 
