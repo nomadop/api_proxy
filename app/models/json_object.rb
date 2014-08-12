@@ -2,8 +2,8 @@ class JSONObject
 	def initialize raw
 		raw = JSON.parse(raw) unless raw.instance_of?(Hash)
 		raw.each do |key, value|
-			self.singleton_class.send(:attr_accessor, key)
-			self.send("#{key}=", JSONObject.parse_value(value))
+			self.singleton_class.send(:attr_reader, key)
+			self.instance_variable_set("@#{key}", JSONObject.parse_value(value))
 		end
 	end
 

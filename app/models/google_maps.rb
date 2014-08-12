@@ -29,10 +29,11 @@ module GoogleMaps
 				c.params = {
 					size: '500x500',
 					scale: 2,
-					markers: "size:small|",
+					markers: ["size:small|", "size:small|color:blue|"],
 					path: "color:0xff0000|weight:2|"
 				}.merge(opts)
-				c.params[:markers] += "#{markers.first}|#{markers.last}"
+				c.params[:markers][0] += markers.first
+				c.params[:markers][1] += markers.last
 				c.params[:path] += "enc:#{path}"
 			end
 			response = conn.try(:get, '/maps/api/staticmap')
@@ -75,7 +76,7 @@ module GoogleMaps
 	end
 
 	class Direction < Serializers
-		attr_accessor :origin, :destination, :options, :status, :routes
+		attr_reader :origin, :destination, :options, :status, :routes
 
 		def initialize origin, destination, opts = {}
 			@origin = origin
@@ -89,8 +90,8 @@ module GoogleMaps
 				end
 				@status = result.status
 			rescue Exception => e
-				p e
-				p e.backtrace
+				pp e
+				pp e.backtrace
 				@status = 'LocalSystemError'
 			end
 		end
@@ -102,8 +103,8 @@ module GoogleMaps
 		def initialize json_object
 			@origin = json_object.legs[0].start_address
 			@destination = json_object.legs[0].end_address
-			@distance = json_object.legs[0].distance.value
-			@duration = json_object.legs[0].duration.value
+			@distance = json_object.legs[0].distance.value / 1000.0
+			@duration = (json_object.legs[0].duration.value / 60.0).round(2)
 			@markers = json_object.legs[0].steps.map do |step|
 				step.start_location.as_json.values.join(',')
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
@@ -139,8 +140,8 @@ module GoogleMaps
 
 		def initialize json_object, number
 			@step_number = number
-			@distance = json_object.distance.value
-			@duration = json_object.duration.value
+			@distance = json_object.distance.value / 1000.0
+			@duration = (json_object.duration.value / 60.0).round(2)
 			@start_location = json_object.start_location.as_json.values.join(',')
 			@end_location = json_object.end_location.as_json.values.join(',')
 			@path = json_object.polyline.points
@@ -150,7 +151,7 @@ module GoogleMaps
 						departure: departure_stop.name,
 						arrival: arrival_stop.name,
 						headsign: headsign,
-						name: line.short_name,
+						name: [line.name, line.short_name].compact.join(' '),
 						vehicle: line.vehicle.type 
 					}
 				else
@@ -159,7 +160,13 @@ module GoogleMaps
 			end
 			@html_instructions = json_object.steps.to_a.inject([json_object.html_instructions]){|res, s| res << s.html_instructions }.compact
 			@travel_mode = json_object.travel_mode
-			@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: '200x200')
+			@map_size = case distance
+			when 0...1
+				'200x200'
+			else
+				'500x500'
+			end
+			@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size)
 		end
 
 		def as_json opts = {}
@@ -167,7 +174,7 @@ module GoogleMaps
 		end
 
 		def staticmap
-			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: '200x200'))
+			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: @map_size))
 		end
 
 		def overview

@@ -1,0 +1,54 @@
+<% case @response[:status] %>
+<% when 200 %>
+<% routes = @response[:data]['routes'] %>
+<p>
+	<strong>Routes:</strong><br>
+	<% routes.each_with_index do |route, rindex| %>
+	<p>
+		<%= rindex + 1 %>: <%= case @response[:data]['provider']
+		when 'GoogleMaps'
+			route['overview']
+		when 'Rome2rio'
+			route['name']		
+		end %> <br>
+		距离: <%= route['distance'] %> 公里 <br>
+		时间: <%= route['duration'] %> 分钟 <br>
+		<img src="<%= route['staticmap_url'] %>" alt="">
+	</p>
+	<ul>
+		<% steps = case @response[:data]['provider']
+		when 'GoogleMaps'
+			route['steps']
+		when 'Rome2rio'
+			route['segments']
+		else
+			nil
+		end %>
+		<% steps.each_with_index do |step, sindex| %>
+		<li>
+			<% if @response[:data]['provider'] == 'GoogleMaps' %>
+			<%= case step['travel_mode']
+			when 'TRANSIT'
+				"乘坐 #{step['transit_details']['name']} 到 #{step['transit_details']['arrival']}站 (#{step['transit_details']['headsign']}方向)"
+			else
+				raw step['html_instructions'].join('<br>')
+			end %> <br>
+			<% elsif @response[:data]['provider'] == 'Rome2rio' %>
+			<%= case step['kind']
+			when 'walk'
+				"步行前往 #{step['tName']}"
+			when 'car'
+				"驾车前往 #{step['tName']}"
+			when 'bus', 'train'
+				"乘坐 #{step['itineraries'][0]['legs'][0]['hops'][0]['lines'][0]['name']} 前往 #{step['itineraries'][0]['legs'][0]['hops'][0]['tName']}"
+			end %> <br>	
+			<% end %>
+			距离: <%= step['distance'] %> 公里 <br>
+			时间: <%= step['duration'] %> 分钟 <br>
+			<img src="<%= step['staticmap_url'] %>" alt="">
+			<% end %>
+		</li>
+	</ul>
+	<% end %>
+</p>
+<% end %>

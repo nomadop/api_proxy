@@ -90,6 +90,9 @@ GEM
     rdoc (4.1.1)
       json (~> 1.4)
     ref (1.0.5)
+    rome2rio (0.2.0)
+      faraday
+      multi_json
     sass (3.2.19)
     sass-rails (4.0.3)
       railties (>= 4.0.0, < 5.0)
@@ -138,6 +141,7 @@ DEPENDENCIES
   jbuilder (~> 2.0)
   jquery-rails
   rails (= 4.1.4)
+  rome2rio
   sass-rails (~> 4.0.3)
   sdoc (~> 0.4.0)
   spring

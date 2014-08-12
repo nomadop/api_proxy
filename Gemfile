@@ -44,3 +44,5 @@ gem 'geokit', git: 'https://github.com/geokit/geokit.git'
 gem 'faraday'
 
 gem 'dragonfly', '~> 1.0.5'
+
+gem 'rome2rio'
