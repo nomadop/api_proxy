@@ -13,10 +13,12 @@
 		end %> <br>
 		距离: <%= route['distance'] %> 公里 <br>
 		时间: <%= route['duration'] %> 分钟 <br>
-		<% if params[:preload] == 'true' %>
-		<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
-		<% else %>
-		<img src="<%= api_proxy_path url: CGI.escape(route['staticmap_url']) %>" alt="">
+		<% if @response[:data]['provider'] == 'GoogleMaps' %>
+			<% if params[:preload] == 'true' %>
+			<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
+			<% else %>
+			<img src="<%= api_proxy_path url: CGI.escape(route['staticmap_url']) %>" alt="">
+			<% end %>
 		<% end %>
 	</p>
 	<ul>
