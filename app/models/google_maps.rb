@@ -104,9 +104,11 @@ module GoogleMaps
 			begin
 				result = GoogleMaps::Wraper.direction(@origin, @destination, @options.merge({mode: 'transit'}))
 				result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
+				threads = []
 				@routes = result.routes.map do |route|
-					GoogleMaps::Route.new(route)
+					GoogleMaps::Route.new(route, threads)
 				end
+				threads.each { |t| t.join }
 				@status = result.status
 			rescue Exception => e
 				pp e
@@ -119,7 +121,7 @@ module GoogleMaps
 	class Route < Serializers
 		attr_reader :origin, :destination, :path, :markers, :distance, :duration, :staticmap_url, :steps
 
-		def initialize json_object
+		def initialize json_object, threads
 			@origin = json_object.legs[0].start_address
 			@destination = json_object.legs[0].end_address
 			@distance = json_object.legs[0].distance.value / 1000.0
@@ -129,9 +131,9 @@ module GoogleMaps
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
 			@path = json_object.overview_polyline.points
 			@steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
-				GoogleMaps::Step.new(step, index)
+				GoogleMaps::Step.new(step, index, threads)
 			end
-			@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url).gsub(/%5B%5D/, '')
+			threads << Thread.new { @staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url).gsub(/%5B%5D/, '') }
 		end
 
 		def as_json opts = {}
@@ -157,7 +159,7 @@ module GoogleMaps
 	class Step < Serializers
 		attr_reader :step_number, :distance, :duration ,:start_location, :end_location, :path, :transit_details, :html_instructions, :travel_mode, :staticmap_url
 
-		def initialize json_object, number
+		def initialize json_object, number, threads
 			@step_number = number
 			@distance = json_object.distance.value / 1000.0
 			@duration = (json_object.duration.value / 60.0).round(2)
@@ -185,7 +187,7 @@ module GoogleMaps
 			else
 				'500x500'
 			end
-			@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size).gsub(/%5B%5D/, '')
+			threads << Thread.new { @staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size).gsub(/%5B%5D/, '') }
 		end
 
 		def as_json opts = {}

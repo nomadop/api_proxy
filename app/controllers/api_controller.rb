@@ -11,6 +11,7 @@ class ApiController < ApplicationController
 				case params[:p]
 				when 'rome2rio'
 					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX')
+					threads = []
 					res.routes.map(&:segments).flatten.each do |seg|
 						seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
 						map_size = case seg.distance
@@ -19,8 +20,9 @@ class ApiController < ApplicationController
 						else
 							'500x500'
 						end
-						seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
+						threads << Thread.new{seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')}
 					end
+					threads.each { |t| t.join }
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 				else
 					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
