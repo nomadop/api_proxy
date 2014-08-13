@@ -28,12 +28,11 @@ module GoogleMaps
 			when 1
 				# Params: url
 				url = args[0]
-				conn = Conn.init do
-					c.options[:proxy] = PROXY unless PROXY.blank?
+				res = nil
+				Net::HTTP.start('maps.googleapis.com') do |http|
+					res = http.get('/' + url.split('/')[3..-1].join('/'))
 				end
-				response = conn.try(:get, url)
-				response = conn.try(:get, response.headers['location']) if response.status == 301
-				response.body
+				res.body
 			when 2..4
 				# Params: markers, path, accept, opts = {}
 				markers = args[0]
@@ -54,16 +53,16 @@ module GoogleMaps
 				end
 				case accept
 				when :url
-					"#{HOST}/maps/api/staticmap?#{conn.params.to_param}"
+					"#{HOST}/maps/api/staticmap?#{conn.params.to_param}".gsub(/%5B%5D/, '')
 				when :data
 					response = conn.try(:get, '/maps/api/staticmap')
-					response = conn.try(:get, response.headers['location']) if response.status == 301
+					response = GoogleMaps::Wraper.staticmap(response.headers['location']) if response.status == 301
 					response.body
 				else
 					raise 'Accept Type Error'
 				end
 			else
-				raise 'Wrong parameters number'				
+				raise "wrong number of arguments (#{args.size} for 1..4)"				
 			end
 		end
 	end
@@ -102,7 +101,7 @@ module GoogleMaps
 				result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
 				threads = []
 				@routes = result.routes.map do |route|
-					GoogleMaps::Route.new(route, threads)
+					GoogleMaps::Route.new(route, threads, preload: opts[:preload])
 				end
 				threads.each { |t| t.join }
 				@status = result.status
@@ -117,7 +116,7 @@ module GoogleMaps
 	class Route < Serializers
 		attr_reader :origin, :destination, :path, :markers, :distance, :duration, :staticmap_url, :steps
 
-		def initialize json_object, threads
+		def initialize json_object, threads, opts = {}
 			@origin = json_object.legs[0].start_address
 			@destination = json_object.legs[0].end_address
 			@distance = json_object.legs[0].distance.value / 1000.0
@@ -127,17 +126,20 @@ module GoogleMaps
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
 			@path = json_object.overview_polyline.points
 			@steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
-				GoogleMaps::Step.new(step, index, threads)
+				GoogleMaps::Step.new(step, index, threads, opts)
 			end
-			threads << Thread.new { @staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url).gsub(/%5B%5D/, '') }
+			threads << Thread.new do
+				@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url)
+				staticmap if opts[:preload] == "true"
+			end
 		end
 
 		def as_json opts = {}
-			super({methods: [:step_numbers, :overview], except: :staticmap}.merge(opts))
+			super({methods: [:step_numbers, :overview]}.merge(opts))
 		end
 
 		def staticmap
-			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@staticmap_url))
+			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@markers, @path, :data))
 		end
 
 		def step_numbers
@@ -155,7 +157,7 @@ module GoogleMaps
 	class Step < Serializers
 		attr_reader :step_number, :distance, :duration ,:start_location, :end_location, :path, :transit_details, :html_instructions, :travel_mode, :staticmap_url
 
-		def initialize json_object, number, threads
+		def initialize json_object, number, threads, opts = {}
 			@step_number = number
 			@distance = json_object.distance.value / 1000.0
 			@duration = (json_object.duration.value / 60.0).round(2)
@@ -183,15 +185,14 @@ module GoogleMaps
 			else
 				'500x500'
 			end
-			threads << Thread.new { @staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size).gsub(/%5B%5D/, '') }
-		end
-
-		def as_json opts = {}
-			super({except: :staticmap}.merge(opts))
+			threads << Thread.new do
+				@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size)
+				staticmap if opts[:preload] == "true"
+			end
 		end
 
 		def staticmap
-			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@staticmap_url))
+			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: @map_size))
 		end
 
 		def overview

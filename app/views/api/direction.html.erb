@@ -13,7 +13,11 @@
 		end %> <br>
 		距离: <%= route['distance'] %> 公里 <br>
 		时间: <%= route['duration'] %> 分钟 <br>
+		<% if params[:preload] == 'true' %>
+		<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
+		<% else %>
 		<img src="<%= route['staticmap_url'] %>" alt="">
+		<% end %>
 	</p>
 	<ul>
 		<% steps = case @response[:data]['provider']
@@ -45,9 +49,13 @@
 			<% end %>
 			距离: <%= step['distance'] %> 公里 <br>
 			时间: <%= step['duration'] %> 分钟 <br>
+			<% if params[:preload] == 'true' %>
+			<img src="<%= "data:image/(jpg|png);base64,#{step['staticmap']}" %>" alt="">
+			<% else %>
 			<img src="<%= step['staticmap_url'] %>" alt="">
 			<% end %>
 		</li>
+		<% end %>
 	</ul>
 	<% end %>
 </p>

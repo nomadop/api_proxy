@@ -6,8 +6,6 @@ class ApiController < ApplicationController
 		@response = {}
 		begin
 			if params[:o] && params[:d]
-				opts = params.as_json
-
 				case params[:p]
 				when 'rome2rio'
 					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX')
@@ -25,12 +23,9 @@ class ApiController < ApplicationController
 					threads.each { |t| t.join }
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 				else
+					opts = direction_params
 					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
-					data = if params[:map] == 'true'
-						direction.as_json(methods: [:step_numbers, :overview, :staticmap])
-					else
-						direction.as_json
-					end.merge({'provider' => 'GoogleMaps'})
+					data = direction.as_json.merge({'provider' => 'GoogleMaps'})
 				end
 
 				@response = { status: 200, data: data }
@@ -48,4 +43,9 @@ class ApiController < ApplicationController
       format.json { render json: JSON.generate(@response) }
     end
 	end
+
+	private
+		def direction_params
+      params.permit(:sensor, :mode, :waypoints, :alternatives, :avoid, :units, :region, :departure_time, :arrival_time, :preload)
+    end
 end
