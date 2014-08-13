@@ -19,11 +19,11 @@ class ApiController < ApplicationController
 						else
 							'500x500'
 						end
-						seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size))
+						seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
 					end
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 				else
-					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
+					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts).gsub(/%5B%5D/, '')
 					data = if params[:map] == 'true'
 						direction.as_json(methods: [:step_numbers, :overview, :staticmap])
 					else

@@ -23,32 +23,51 @@ module GoogleMaps
 			JSONObject.new(response.body)
 		end
 
-		def self.staticmap markers, path, accept = :url, opts = {}
-			conn = Conn.init(HOST) do |c|
-				c.options[:proxy] = PROXY unless PROXY.blank?
-				c.params = {
-					size: '500x500',
-					scale: 2,
-					markers: ["size:small|", "size:small|color:blue|"],
-					path: "color:0xff0000|weight:2|"
-				}.merge(opts)
-				c.params[:markers][0] += markers.first
-				c.params[:markers][1] += markers.last
-				c.params[:path] += "enc:#{path}"
-			end
-			response = conn.try(:get, '/maps/api/staticmap')
-			case accept
-			when :url
-				if response.status == 301
-					response.headers['location']
-				else
-					"#{HOST}/maps/api/staticmap?#{conn.params.to_param}"
+		def self.staticmap *args
+			case args.size
+			when 1
+				# Params: url
+				url = args[0]
+				conn = Conn.init do
+					c.options[:proxy] = PROXY unless PROXY.blank?
 				end
-			when :data
+				response = conn.try(:get, url)
 				response = conn.try(:get, response.headers['location']) if response.status == 301
 				response.body
+			when 2..4
+				# Params: markers, path, accept, opts = {}
+				markers = args[0]
+				path = args[1]
+				accept = args[2]
+				opts = args[3] || {}
+				conn = Conn.init(HOST) do |c|
+					c.options[:proxy] = PROXY unless PROXY.blank?
+					c.params = {
+						size: '500x500',
+						scale: 2,
+						markers: ["size:small|", "size:small|color:blue|"],
+						path: "color:0xff0000|weight:2|"
+					}.merge(opts)
+					c.params[:markers][0] += markers.first
+					c.params[:markers][1] += markers.last
+					c.params[:path] += "enc:#{path}"
+				end
+				response = conn.try(:get, '/maps/api/staticmap')
+				case accept
+				when :url
+					if response.status == 301
+						response.headers['location']
+					else
+						"#{HOST}/maps/api/staticmap?#{conn.params.to_param}"
+					end
+				when :data
+					response = conn.try(:get, response.headers['location']) if response.status == 301
+					response.body
+				else
+					raise 'Accept Type Error'
+				end
 			else
-				raise 'Accept Type Error'
+				raise 'Wrong parameters number'				
 			end
 		end
 	end
@@ -112,7 +131,7 @@ module GoogleMaps
 			@steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
 				GoogleMaps::Step.new(step, index)
 			end
-			@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url)
+			@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url).gsub(/%5B%5D/, '')
 		end
 
 		def as_json opts = {}
@@ -120,7 +139,7 @@ module GoogleMaps
 		end
 
 		def staticmap
-			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@markers, @path, :data))
+			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@staticmap_url))
 		end
 
 		def step_numbers
@@ -166,7 +185,7 @@ module GoogleMaps
 			else
 				'500x500'
 			end
-			@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size)
+			@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size).gsub(/%5B%5D/, '')
 		end
 
 		def as_json opts = {}
@@ -174,7 +193,7 @@ module GoogleMaps
 		end
 
 		def staticmap
-			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: @map_size))
+			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap(@staticmap_url))
 		end
 
 		def overview

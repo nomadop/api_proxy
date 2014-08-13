@@ -1,6 +1,6 @@
 class Conn
 	
-	def self.init url, options = {}
+	def self.init url = '', options = {}
 		conn_options = options.reject { |key, val| [:adapter, :timeout, :open_timeout].include?(key) }
 
 		conn = Faraday.new(url, conn_options) do |builder|
