@@ -52,15 +52,11 @@ module GoogleMaps
 					c.params[:markers][1] += markers.last
 					c.params[:path] += "enc:#{path}"
 				end
-				response = conn.try(:get, '/maps/api/staticmap')
 				case accept
 				when :url
-					if response.status == 301
-						response.headers['location']
-					else
-						"#{HOST}/maps/api/staticmap?#{conn.params.to_param}"
-					end
+					"#{HOST}/maps/api/staticmap?#{conn.params.to_param}"
 				when :data
+					response = conn.try(:get, '/maps/api/staticmap')
 					response = conn.try(:get, response.headers['location']) if response.status == 301
 					response.body
 				else
