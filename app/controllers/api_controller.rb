@@ -26,8 +26,9 @@ class ApiController < ApplicationController
 		begin
 			origin = params[:o] || params[:oName] || params[:origin]
 			destination = params[:d] || params[:dName] || params[:origin]
+			provider = params[:p] || params[:provider]
 			if origin && destination
-				case params[:p]
+				case provider
 				when 'rome2rio'
 					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX')
 					threads = []
