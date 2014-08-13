@@ -23,7 +23,7 @@ class ApiController < ApplicationController
 					end
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 				else
-					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts).gsub(/%5B%5D/, '')
+					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
 					data = if params[:map] == 'true'
 						direction.as_json(methods: [:step_numbers, :overview, :staticmap])
 					else
