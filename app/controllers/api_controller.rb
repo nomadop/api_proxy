@@ -39,7 +39,10 @@ class ApiController < ApplicationController
 						else
 							'500x500'
 						end
-						threads << Thread.new{seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')}
+						threads << Thread.new do 
+							seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
+							seg.instance_variable_set(:@staticmap, Base64.strict_encode64(GoogleMaps::Wraper.staticmap(seg.staticmap_url))) if params[:preload] == true
+						end
 					end
 					threads.each { |t| t.join }
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
