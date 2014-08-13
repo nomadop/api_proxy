@@ -3,7 +3,7 @@ class ApiController < ApplicationController
   require 'pp'
 
   def proxy
-  	url = CGI.unescape(params[:url])
+  	url = CGI.unescape(params[:url]).gsub(/&amp;/, '&')
   	host = url.match(/https?:\/\/(.*?)\//) || url.match(/https?:\/\/(.*?)$/)
   	host = host[1]
   	uri = '/' + url.split('/')[3..-1].join('/')
@@ -13,8 +13,9 @@ class ApiController < ApplicationController
   	end
   	if res.header['content-type'].split(';').first == 'text/html'
   		doc = Nokogiri::HTML(res.body)
-  		doc.css('a').each { |a| a['href'] = "/api/proxy?url=#{CGI.escape(a['href'])}" }
-  		send_data doc.to_s, disposition: 'inline', type: res.header['content-type']
+  		regexp = /[\'\"](https?:\\?\/\\?\/.*?)[\'\"]/ 
+  		html = doc.to_s.gsub(regexp){|u| "/api/proxy?url=#{CGI.escape(u[1...-1])}"}
+  		send_data html, disposition: 'inline', type: res.header['content-type']
   	else
   		send_data res.body, disposition: 'inline', type: res.header['content-type']
   	end
