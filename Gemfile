@@ -46,3 +46,5 @@ gem 'faraday'
 gem 'dragonfly', '~> 1.0.5'
 
 gem 'rome2rio'
+
+gem 'nokogiri'

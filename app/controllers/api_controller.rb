@@ -2,10 +2,30 @@ class ApiController < ApplicationController
   # protect_from_forgery :only  => []
   require 'pp'
 
+  def proxy
+  	url = CGI.unescape(params[:url])
+  	host = url.match(/https?:\/\/(.*?)\//) || url.match(/https?:\/\/(.*?)$/)
+  	host = host[1]
+  	uri = '/' + url.split('/')[3..-1].join('/')
+  	res = nil
+  	Net::HTTP.start(host) do |http|
+  		res = http.get(uri)
+  	end
+  	if res.header['content-type'].split(';').first == 'text/html'
+  		doc = Nokogiri::HTML(res.body)
+  		doc.css('a').each { |a| a['href'] = "/api/proxy?url=#{CGI.escape(a['href'])}" }
+  		send_data doc.to_s, disposition: 'inline', type: res.header['content-type']
+  	else
+  		send_data res.body, disposition: 'inline', type: res.header['content-type']
+  	end
+  end
+
 	def direction
 		@response = {}
 		begin
-			if params[:o] && params[:d]
+			origin = params[:o] || params[:oName] || params[:origin]
+			destination = params[:d] || params[:dName] || params[:origin]
+			if origin && destination
 				case params[:p]
 				when 'rome2rio'
 					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX')
@@ -30,12 +50,10 @@ class ApiController < ApplicationController
 
 				@response = { status: 200, data: data }
 			else
-				@response = { status: 204, data: 'Wrong Parameters' }
+				@response = { status: 204, data: 'INVALID_REQUEST: wrong number of parameters' }
 			end
 		rescue Exception => e
-			pp e
-			pp e.backtrace
-			@response = { status: 500, data: {error: e.inspect, backtrace: e.backtrace} }
+			@response = { status: 500, data: 'Server error', error: e.inspect, backtrace: e.backtrace }
 		end
 
 		respond_to do |format|

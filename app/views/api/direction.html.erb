@@ -16,7 +16,7 @@
 		<% if params[:preload] == 'true' %>
 		<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
 		<% else %>
-		<img src="<%= route['staticmap_url'] %>" alt="">
+		<img src="<%= api_proxy_path url: CGI.escape(route['staticmap_url']) %>" alt="">
 		<% end %>
 	</p>
 	<ul>
@@ -52,7 +52,7 @@
 			<% if params[:preload] == 'true' %>
 			<img src="<%= "data:image/(jpg|png);base64,#{step['staticmap']}" %>" alt="">
 			<% else %>
-			<img src="<%= step['staticmap_url'] %>" alt="">
+			<img src="<%= api_proxy_path url: CGI.escape(step['staticmap_url']) %>" alt="">
 			<% end %>
 		</li>
 		<% end %>
