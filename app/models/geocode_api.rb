@@ -6,8 +6,10 @@ class GeocodeApi
 		bing: 'Ao9yUqipvyK9Gyt1jZEiolDPDNQ4evUSSKlvUN7t0rx0iiD-u9uMNeHsojrRyNVY',
 		geonames: 'nomadop'
 	}
+	RegApis = [:google, :map_quest, :bing, :geonames]
 	
 	def self.geocode address, api
+		raise 'No such api' unless RegApis.include?(api)
 		geocoder = Geokit::Geocoders.const_get("#{api.to_s.camelize}Geocoder")
 		geocoder.key = GeocodeApi::ApiKeys[api.to_sym] if geocoder.respond_to?(:key)
 		geocoder.premium = false if geocoder.respond_to?(:premium)

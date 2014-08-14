@@ -2,6 +2,13 @@ class ApiController < ApplicationController
   # protect_from_forgery :only  => []
   require 'pp'
 
+  def geocode
+  	query = params[:q] || params[:query]
+  	api = params[:api] || 'google'
+  	loc = GeocodeApi.geocode(q, api)
+  	render json: loc
+  end
+
   def proxy
   	url = CGI.unescape(params[:url]).gsub(/&amp;/, '&')
   	host = url.match(/https?:\/\/(.*?)\//) || url.match(/https?:\/\/(.*?)$/)

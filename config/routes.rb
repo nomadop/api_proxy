@@ -2,6 +2,7 @@ Rails.application.routes.draw do
 
   get 'api/direction'
   get 'api/proxy'
+  get 'api/geocode'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
