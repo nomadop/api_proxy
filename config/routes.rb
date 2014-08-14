@@ -1,13 +1,5 @@
 Rails.application.routes.draw do
 
-  resources :directions do
-    member do
-      get ':route_id/staticmap' => 'directions#staticmap'
-      get ':route_id/:step_id/staticmap' => 'directions#staticmap'
-    end
-  end
-
-  get 'geocode/latlng'
   get 'api/direction'
   get 'api/proxy'
 

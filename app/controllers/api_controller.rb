@@ -25,7 +25,7 @@ class ApiController < ApplicationController
 		@response = {}
 		begin
 			origin = params[:o] || params[:oName] || params[:origin]
-			destination = params[:d] || params[:dName] || params[:origin]
+			destination = params[:d] || params[:dName] || params[:destination]
 			provider = params[:p] || params[:provider]
 			if origin && destination
 				case provider
@@ -48,11 +48,9 @@ class ApiController < ApplicationController
 					threads.each { |t| t.join }
 					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 				else
-					opts = direction_params
-					direction = GoogleMaps::Direction.new(params[:o], params[:d], opts)
+					direction = GoogleMaps::Direction.new(params[:o], params[:d], direction_params)
 					data = direction.as_json.merge({'provider' => 'GoogleMaps'})
 				end
-
 				@response = { status: 200, data: data }
 			else
 				@response = { status: 204, data: 'INVALID_REQUEST: wrong number of parameters' }
