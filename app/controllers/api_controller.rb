@@ -5,7 +5,7 @@ class ApiController < ApplicationController
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
-  	loc = GeocodeApi.geocode(q, api)
+  	loc = GeocodeApi.geocode(query, api)
   	render json: loc
   end
 
