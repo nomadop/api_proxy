@@ -35,7 +35,7 @@
 			<% if @response[:data]['provider'] == 'GoogleMaps' %>
 			<%= case step['travel_mode']
 			when 'TRANSIT'
-				"乘坐 #{step['transit_details']['name']} 到 #{step['transit_details']['arrival']}站 (#{step['transit_details']['headsign']}方向)"
+				"乘坐 #{step['transit_details']['name']} 到 #{step['transit_details']['arrival']}站 (#{step['transit_details']['headsign']}方向 途经 #{step['transit_details']['stops']} 站)"
 			else
 				raw step['html_instructions'].join('<br>')
 			end %> <br>

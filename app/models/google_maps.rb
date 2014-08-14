@@ -171,7 +171,8 @@ module GoogleMaps
 						arrival: arrival_stop.name,
 						headsign: headsign,
 						name: [line.name, line.short_name].compact.join(' '),
-						vehicle: line.vehicle.type 
+						vehicle: line.vehicle.type,
+						stops: num_stops
 					}
 				else
 					nil
