@@ -1,6 +1,8 @@
 # encoding: utf-8
 
 module GoogleMaps
+	UrlThresholdBase = 0.0004 / 2000
+
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
 		PROXY = ''
@@ -128,7 +130,7 @@ module GoogleMaps
 			escaped_path_size = CGI.escape(path).size
 			if escaped_path_size > 1800
 				points = Polylines::Decoder.decode_polyline(path)
-				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(1.0 / escaped_path_size).points
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
 			  @path = ziped_path
 			end
@@ -178,7 +180,7 @@ module GoogleMaps
 			escaped_path_size = CGI.escape(path).size
 			if escaped_path_size > 1800
 				points = Polylines::Decoder.decode_polyline(path)
-				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(1.0 / escaped_path_size).points
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
 			  @path = ziped_path
 			end

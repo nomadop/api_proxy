@@ -44,7 +44,7 @@ class ApiController < ApplicationController
 						escaped_path_size = CGI.escape(seg.path).size
 						if escaped_path_size > 1800
 							points = Polylines::Decoder.decode_polyline(seg.path)
-							ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(1.0 / escaped_path_size).points
+							ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
 							ziped_path = Polylines::Encoder.encode_points(ziped_points)
 							seg.instance_variable_set :@path, ziped_path
 						end
