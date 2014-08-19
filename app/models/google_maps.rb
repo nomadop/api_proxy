@@ -33,7 +33,7 @@ module GoogleMaps
 				url = args[0]
 				res = nil
 				Net::HTTP.start('maps.googleapis.com') do |http|
-					res = http.get('/' + url.split('/')[3..-1].join('/') + "&key=#{BROSER_KEY}")
+					res = http.get('/' + url.split('/')[3..-1].join('/'))
 				end
 				res.body
 			when 2..4
