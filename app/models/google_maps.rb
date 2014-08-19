@@ -163,7 +163,7 @@ module GoogleMaps
 		end
 
 		def name
-			@steps.map(&:name).compact.uniq
+			@steps.map(&:overview).compact.uniq.join(', ')
 		end
 	end
 
@@ -214,21 +214,6 @@ module GoogleMaps
 
 		def staticmap
 			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: @map_size))
-		end
-
-		def name
-			case @travel_mode
-			when 'WALKING'
-				if @html_instructions.size > 1
-					'WALK'
-				else
-					nil
-				end
-			when 'DRIVING'
-				'CAR'
-			when 'TRANSIT'
-				@transit_details[:vehicle]
-			end
 		end
 
 		def overview
