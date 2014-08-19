@@ -33,7 +33,7 @@ module GoogleMaps
 				url = args[0]
 				res = nil
 				Net::HTTP.start('maps.googleapis.com') do |http|
-					res = http.get('/' + url.split('/')[3..-1].join('/'))
+					res = http.get('/' + url.split('/' + "&key=#{BROSER_KEY}")[3..-1].join('/'))
 				end
 				res.body
 			when 2..4
@@ -48,8 +48,7 @@ module GoogleMaps
 						size: '500x500',
 						scale: 2,
 						markers: ["size:small|", "size:small|color:blue|"],
-						path: "color:0xff0000|weight:2|",
-						key: BROSER_KEY
+						path: "color:0xff0000|weight:2|"
 					}.merge(opts)
 					c.params[:markers][0] += markers.first
 					c.params[:markers][1] += markers.last
