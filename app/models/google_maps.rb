@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 module GoogleMaps
-	UrlThresholdBase = 0.0004 / 2000
+	UrlThresholdBase = 0.0007 / 2000
 
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
