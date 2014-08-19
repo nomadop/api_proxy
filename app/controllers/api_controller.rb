@@ -37,32 +37,47 @@ class ApiController < ApplicationController
 			if origin && destination
 				case provider
 				when 'rome2rio'
-					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX', flags: '0x0000000F')
-					threads = []
-					res.routes.map(&:segments).flatten.each do |seg|
-						seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
-						escaped_path_size = CGI.escape(seg.path).size
-						if escaped_path_size > 1800
-							points = Polylines::Decoder.decode_polyline(seg.path)
-							ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
-							ziped_path = Polylines::Encoder.encode_points(ziped_points)
-							seg.instance_variable_set :@path, ziped_path
+					ll_regexp = /-?\d+.\d+\,-?\d+.\d+/
+					params = {key: 'INyVvCSX', flags: '0x0000000F'}
+					params.merge!(if origin =~ ll_regexp
+											{oPos: origin, dPos: destination}
+										else
+											{oName: origin, dName: destination}
+										end)
+					puts params
+					res = Rome2rio::Connection.new.search(params)
+					case res
+					when Rome2rio::SearchResponse
+						threads = []
+						res.routes.map(&:segments).flatten.each do |seg|
+							seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
+							escaped_path_size = CGI.escape(seg.path).size
+							if escaped_path_size > 1800
+								points = Polylines::Decoder.decode_polyline(seg.path)
+								ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
+								ziped_path = Polylines::Encoder.encode_points(ziped_points)
+								seg.instance_variable_set :@path, ziped_path
+							end
+							map_size = case seg.distance
+							when 0...1
+								'200x200'
+							else
+								'500x500'
+							end
+							threads << Thread.new do 
+								seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
+								seg.instance_variable_set(:@staticmap, Base64.strict_encode64(GoogleMaps::Wraper.staticmap(seg.staticmap_url))) if params[:preload] == 'true'
+							end
 						end
-						map_size = case seg.distance
-						when 0...1
-							'200x200'
-						else
-							'500x500'
-						end
-						threads << Thread.new do 
-							seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
-							seg.instance_variable_set(:@staticmap, Base64.strict_encode64(GoogleMaps::Wraper.staticmap(seg.staticmap_url))) if params[:preload] == 'true'
-						end
+						threads.each { |t| t.join }
+						data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
+					when Hash
+						data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
+					else
+						raise 'unknown error'
 					end
-					threads.each { |t| t.join }
-					data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
-				else
-					direction = GoogleMaps::Direction.new(params[:o], params[:d], direction_params)
+				else # default provider = GoogleMaps
+					direction = GoogleMaps::Direction.new(origin, destination, direction_params)
 					data = direction.as_json.merge({'provider' => 'GoogleMaps'})
 				end
 				@response = { status: 200, data: data }
