@@ -38,14 +38,13 @@ class ApiController < ApplicationController
 				case provider
 				when 'rome2rio'
 					ll_regexp = /-?\d+.\d+\,-?\d+.\d+/
-					params = {key: 'INyVvCSX', flags: '0x0000000F'}
-					params.merge!(if origin =~ ll_regexp
+					rome2rio_params = {key: 'INyVvCSX', flags: '0x0000000F'}
+					rome2rio_params.merge!(if origin =~ ll_regexp
 											{oPos: origin, dPos: destination}
 										else
 											{oName: origin, dName: destination}
 										end)
-					puts params
-					res = Rome2rio::Connection.new.search(params)
+					res = Rome2rio::Connection.new.search(rome2rio_params)
 					case res
 					when Rome2rio::SearchResponse
 						threads = []
@@ -73,9 +72,9 @@ class ApiController < ApplicationController
 							end
 						end
 						threads.each { |t| t.join }
-						data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
+						data = { 'origin' => origin, 'destination' => destination, 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 					when Hash
-						data = { 'origin' => params[:o], 'destination' => params[:d], 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
+						data = { 'origin' => origin, 'destination' => destination, 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
 					else
 						raise 'unknown error'
 					end
