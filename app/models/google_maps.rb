@@ -6,6 +6,7 @@ module GoogleMaps
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
 		PROXY = ''
+		BROSER_KEY = 'AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0'
 
 		def self.direction o_name, d_name, opts = {}
 			conn = Conn.init(HOST) do |c|
@@ -47,7 +48,8 @@ module GoogleMaps
 						size: '500x500',
 						scale: 2,
 						markers: ["size:small|", "size:small|color:blue|"],
-						path: "color:0xff0000|weight:2|"
+						path: "color:0xff0000|weight:2|",
+						key: BROSER_KEY
 					}.merge(opts)
 					c.params[:markers][0] += markers.first
 					c.params[:markers][1] += markers.last
