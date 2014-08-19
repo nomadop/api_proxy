@@ -120,7 +120,7 @@ module GoogleMaps
 			@origin = json_object.legs[0].start_address
 			@destination = json_object.legs[0].end_address
 			@distance = json_object.legs[0].distance.value / 1000.0
-			@duration = (json_object.legs[0].duration.value / 60.0).round(2)
+			@duration = (json_object.legs[0].duration.value / 60.0).round(1)
 			@markers = json_object.legs[0].steps.map do |step|
 				step.start_location.as_json.values.join(',')
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
@@ -160,7 +160,7 @@ module GoogleMaps
 		def initialize json_object, number, threads, opts = {}
 			@step_number = number
 			@distance = json_object.distance.value / 1000.0
-			@duration = (json_object.duration.value / 60.0).round(2)
+			@duration = (json_object.duration.value / 60.0).round(1)
 			@start_location = json_object.start_location.as_json.values.join(',')
 			@end_location = json_object.end_location.as_json.values.join(',')
 			@path = json_object.polyline.points
