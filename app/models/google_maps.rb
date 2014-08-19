@@ -163,7 +163,7 @@ module GoogleMaps
 		end
 
 		def name
-			@steps.map(&:overview).compact.uniq
+			@steps.map(&:name).compact.uniq
 		end
 	end
 
@@ -195,7 +195,7 @@ module GoogleMaps
 						stops: num_stops
 					}
 				else
-					nil
+					{}
 				end
 			end
 			@html_instructions = json_object.steps.to_a.inject([json_object.html_instructions]){|res, s| res << s.html_instructions }.compact
@@ -214,6 +214,21 @@ module GoogleMaps
 
 		def staticmap
 			@staticmap = @staticmap || Base64.strict_encode64(GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :data, size: @map_size))
+		end
+
+		def name
+			case @travel_mode
+			when 'WALKING'
+				if @html_instructions.size > 1
+					'WALK'
+				else
+					nil
+				end
+			when 'DRIVING'
+				'CAR'
+			when 'TRANSIT'
+				@transit_details[:vehicle]
+			end
 		end
 
 		def overview
