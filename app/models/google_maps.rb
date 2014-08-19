@@ -125,9 +125,10 @@ module GoogleMaps
 				step.start_location.as_json.values.join(',')
 			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
 			@path = json_object.overview_polyline.points
-			if CGI.escape(path).size > 1800
+			escaped_path_size = CGI.escape(path).size
+			if escaped_path_size > 1800
 				points = Polylines::Decoder.decode_polyline(path)
-				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(0.0005).points
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(1.0 / escaped_path_size).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
 			  @path = ziped_path
 			end
@@ -174,9 +175,10 @@ module GoogleMaps
 			@start_location = json_object.start_location.as_json.values.join(',')
 			@end_location = json_object.end_location.as_json.values.join(',')
 			@path = json_object.polyline.points
-			if CGI.escape(path).size > 1800
+			escaped_path_size = CGI.escape(path).size
+			if escaped_path_size > 1800
 				points = Polylines::Decoder.decode_polyline(path)
-				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(0.0005).points
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(1.0 / escaped_path_size).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
 			  @path = ziped_path
 			end
