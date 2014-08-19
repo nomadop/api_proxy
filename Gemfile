@@ -1,5 +1,5 @@
-source 'https://rubygems.org'
-# source 'http://ruby.taobao.org'
+# source 'https://rubygems.org'
+source 'http://ruby.taobao.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
@@ -48,3 +48,6 @@ gem 'dragonfly', '~> 1.0.5'
 gem 'rome2rio'
 
 gem 'nokogiri'
+
+gem 'polylines'
+gem 'douglas_peucker', git: 'https://github.com/joshuaclayton/douglas_peucker.git'

@@ -41,6 +41,12 @@ class ApiController < ApplicationController
 					threads = []
 					res.routes.map(&:segments).flatten.each do |seg|
 						seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
+						if CGI.escape(seg.path).size > 1800
+							points = Polylines::Decoder.decode_polyline(seg.path)
+							ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(0.0005).points
+							ziped_path = Polylines::Encoder.encode_points(ziped_points)
+							seg.instance_variable_set :@path, ziped_path
+						end
 						map_size = case seg.distance
 						when 0...1
 							'200x200'
