@@ -135,7 +135,7 @@ module GoogleMaps
 		end
 
 		def as_json opts = {}
-			super({methods: [:step_numbers, :overview]}.merge(opts))
+			super({methods: [:step_numbers, :overview, :name]}.merge(opts))
 		end
 
 		def staticmap
@@ -151,6 +151,10 @@ module GoogleMaps
 				arr << step.overview if arr.last != step.overview
 				arr
 			end.compact.join(' => ')
+		end
+
+		def name
+			@steps.map(&:overview).compact.uniq
 		end
 	end
 

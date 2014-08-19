@@ -37,7 +37,7 @@ class ApiController < ApplicationController
 			if origin && destination
 				case provider
 				when 'rome2rio'
-					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX')
+					res = Rome2rio::Connection.new.search(oName: params[:o], dName: params[:d], key: 'INyVvCSX', flags: '0x0000000F')
 					threads = []
 					res.routes.map(&:segments).flatten.each do |seg|
 						seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
