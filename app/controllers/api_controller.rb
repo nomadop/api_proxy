@@ -5,7 +5,7 @@ class ApiController < ApplicationController
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
-  	loc = GeocodeApi.geocode(query, api.to_sym)
+  	loc = GeocodeApi.geocode(query, api.to_sym, geocode_params)
   	render json: loc
   end
 
@@ -97,6 +97,10 @@ class ApiController < ApplicationController
 	end
 
 	private
+		def geocode_params
+			params.permit(:bias)
+		end
+
 		def direction_params
       params.permit(:sensor, :mode, :waypoints, :alternatives, :avoid, :units, :region, :departure_time, :arrival_time, :preload)
     end
