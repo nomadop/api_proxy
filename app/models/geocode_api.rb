@@ -9,11 +9,13 @@ class GeocodeApi
 	RegApis = [:google, :map_quest, :bing, :geonames]
 	
 	def self.geocode address, api, opts = {}
-		raise 'No such api' unless RegApis.include?(api)
+		raise 'No such api' unless RegApis.include?(api.to_sym)
 		geocoder = Geokit::Geocoders.const_get("#{api.to_s.camelize}Geocoder")
 		geocoder.key = GeocodeApi::ApiKeys[api.to_sym] if geocoder.respond_to?(:key)
 		geocoder.premium = false if geocoder.respond_to?(:premium)
-		geocoder.geocode(address, opts)
+		args = [address]
+		args << opts if api.to_sym == :google
+		geocoder.geocode(*args)
 	end
 
 end
