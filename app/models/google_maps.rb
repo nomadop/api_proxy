@@ -106,7 +106,7 @@ module GoogleMaps
 			result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
 			threads = []
 			@routes = result.routes.map do |route|
-				GoogleMaps::Route.new(route, threads, preload: opts[:preload])
+				GoogleMaps::Route.new(route, threads, preload: @options[:preload])
 			end
 			threads.each { |t| t.join }
 			@status = result.status
