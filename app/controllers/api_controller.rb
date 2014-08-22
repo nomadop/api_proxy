@@ -5,11 +5,15 @@ class ApiController < ApplicationController
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
- 		if params[:bounds]
- 			bounds = Geokit::Geocoders::GoogleGeocoder.geocode(params[:bounds]).suggested_bounds
- 			params[:bias] = bounds
+  	bias = if params[:bias]
+  		params[:bias]
+ 		elsif params[:bounds]
+ 			Geokit::Geocoders::GoogleGeocoder.geocode(params[:bounds]).suggested_bounds
+ 		else
+ 			nil
  		end
-  	loc = GeocodeApi.geocode(query, api.to_sym, geocode_params)
+ 			
+  	loc = GeocodeApi.geocode(query, api.to_sym, bias: bias)
   	render json: loc
   end
 
