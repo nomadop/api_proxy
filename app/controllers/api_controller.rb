@@ -5,6 +5,10 @@ class ApiController < ApplicationController
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
+ 		if params[:bounds]
+ 			bounds = Geokit::Geocoders::GoogleGeocoder.geocode(params[:bounds]).suggested_bounds
+ 			params[:bias] = bounds
+ 		end
   	loc = GeocodeApi.geocode(query, api.to_sym, geocode_params)
   	render json: loc
   end
@@ -80,6 +84,7 @@ class ApiController < ApplicationController
 					end
 				else # default provider = GoogleMaps
 					direction = GoogleMaps::Direction.new(origin, destination, direction_params)
+					direction.query
 					data = direction.as_json.merge({'provider' => 'GoogleMaps'})
 				end
 				@response = { status: 200, data: data }

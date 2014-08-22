@@ -98,20 +98,28 @@ module GoogleMaps
 			@origin = origin
 			@destination = destination
 			@options = opts
-			begin
-				result = GoogleMaps::Wraper.direction(@origin, @destination, @options.merge({mode: 'transit'}))
-				result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
-				threads = []
-				@routes = result.routes.map do |route|
-					GoogleMaps::Route.new(route, threads, preload: opts[:preload])
-				end
-				threads.each { |t| t.join }
-				@status = result.status
-			rescue Exception => e
-				pp e
-				pp e.backtrace
-				@status = 'LocalSystemError'
+			@status = 'new'
+		end
+
+		def query
+			result = GoogleMaps::Wraper.direction(@origin, @destination, @options.merge({mode: 'transit'}))
+			result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
+			threads = []
+			@routes = result.routes.map do |route|
+				GoogleMaps::Route.new(route, threads, preload: opts[:preload])
 			end
+			threads.each { |t| t.join }
+			@status = result.status
+		rescue Exception => e
+			pp e
+			pp e.backtrace
+			@status = 'LocalSystemError'
+		ensure
+			return self
+		end
+
+		def self.parse_rome2rio_data data
+			direction = new
 		end
 	end
 
