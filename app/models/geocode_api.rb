@@ -1,7 +1,7 @@
 class GeocodeApi
 	# ApiKeys
 	ApiKeys = {
-		google: 'AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0',
+		google: '',
 		map_quest: 'Fmjtd%7Cluur206y2q%2Crw%3Do5-9ay2dy',
 		bing: 'Ao9yUqipvyK9Gyt1jZEiolDPDNQ4evUSSKlvUN7t0rx0iiD-u9uMNeHsojrRyNVY',
 		geonames: 'nomadop'
