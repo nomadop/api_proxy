@@ -13,24 +13,14 @@
 		end %> <br>
 		距离: <%= route['distance'] %> 公里 <br>
 		时间: <%= route['duration'] %> 分钟 <br>
-		<% if @response[:data]['provider'] == 'GoogleMaps' %>
-			<% if params[:preload] == 'true' %>
-			<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
-			<% else %>
-			<img src="<%= api_proxy_path url: CGI.escape(route['staticmap_url']) %>" alt="">
-			<% end %>
+		<% if params[:preload] == 'true' %>
+		<img src="<%= "data:image/(jpg|png);base64,#{route['staticmap']}" %>" alt="">
+		<% else %>
+		<img src="<%= api_proxy_path url: CGI.escape(route['staticmap_url']) %>" alt="">
 		<% end %>
 	</p>
 	<ul>
-		<% steps = case @response[:data]['provider']
-		when 'GoogleMaps'
-			route['steps']
-		when 'Rome2rio'
-			route['segments']
-		else
-			nil
-		end %>
-		<% steps.each_with_index do |step, sindex| %>
+		<% route['steps'].each_with_index do |step, sindex| %>
 		<li>
 			<% if @response[:data]['provider'] == 'GoogleMaps' %>
 			<%= case step['travel_mode']
