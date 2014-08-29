@@ -5,7 +5,16 @@ module GoogleMaps
 
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
+		KEYS = []
 		PROXY = ''
+
+		@@current = 0
+
+		def self.key
+			@@current += 1
+			@@current = 0 if @@current >= KEYS.size
+			KEYS[@@current]
+		end
 
 		def self.direction o_name, d_name, opts = {}
 			conn = Conn.init(HOST) do |c|
@@ -13,8 +22,7 @@ module GoogleMaps
 				c.headers['Accept-Language'] = 'zh-CN,zh'
 				c.params = {
 					origin: o_name,
-					destination: d_name,
-					sensor: false
+					destination: d_name
 				}.merge(opts)
 				c.params[:departure_time] = Date.today.to_time.to_i + 10.hours if c.params[:mode] == 'transit'
 			end
@@ -92,9 +100,9 @@ module GoogleMaps
 	end
 
 	class Direction < Serializers
-		attr_reader :origin, :destination, :options, :status, :routes
+		attr_accessor :origin, :destination, :options, :status, :routes
 
-		def initialize origin, destination, opts = {}
+		def initialize origin = nil, destination = nil, opts = {}
 			@origin = origin
 			@destination = destination
 			@options = opts
@@ -106,7 +114,7 @@ module GoogleMaps
 			result = GoogleMaps::Wraper.direction(@origin, @destination, @options) if result.status == 'ZERO_RESULTS'
 			threads = []
 			@routes = result.routes.map do |route|
-				GoogleMaps::Route.new(route, threads, preload: @options[:preload])
+				GoogleMaps::Route.parse_googlemaps_data(route, threads, preload: @options[:preload])
 			end
 			threads.each { |t| t.join }
 			@status = result.status
@@ -120,39 +128,44 @@ module GoogleMaps
 
 		def self.parse_rome2rio_data data
 			direction = new
+			direction.status = 'OK'
+			direction.routes = data.routes.map do |r|
+				GoogleMaps::Route.parse_rome2rio_data(r)
+			end
+			direction
 		end
 	end
 
 	class Route < Serializers
-		attr_reader :origin, :destination, :path, :markers, :distance, :duration, :staticmap_url, :steps
+		attr_accessor :origin, :destination, :path, :markers, :distance, :duration, :staticmap_url, :steps, :name
 
-		def initialize json_object, threads, opts = {}
-			@origin = json_object.legs[0].start_address
-			@destination = json_object.legs[0].end_address
-			@distance = json_object.legs[0].distance.value / 1000.0
-			@duration = (json_object.legs[0].duration.value / 60.0).round(1)
-			@markers = json_object.legs[0].steps.map do |step|
-				step.start_location.as_json.values.join(',')
-			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
-			@path = json_object.overview_polyline.points
-			escaped_path_size = CGI.escape(path).size
-			if escaped_path_size > 1800
-				points = Polylines::Decoder.decode_polyline(path)
-				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
-				ziped_path = Polylines::Encoder.encode_points(ziped_points)
-			  @path = ziped_path
-			end
-			@steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
-				GoogleMaps::Step.new(step, index, threads, opts)
-			end
-			threads << Thread.new do
-				@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url)
-				staticmap if opts[:preload] == "true"
-			end
-		end
+		# def initialize json_object, threads, opts = {}
+		# 	@origin = json_object.legs[0].start_address
+		# 	@destination = json_object.legs[0].end_address
+		# 	@distance = json_object.legs[0].distance.value / 1000.0
+		# 	@duration = (json_object.legs[0].duration.value / 60.0).round(1)
+		# 	@markers = json_object.legs[0].steps.map do |step|
+		# 		step.start_location.as_json.values.join(',')
+		# 	end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
+		# 	@path = json_object.overview_polyline.points
+		# 	escaped_path_size = CGI.escape(path).size
+		# 	if escaped_path_size > 1800
+		# 		points = Polylines::Decoder.decode_polyline(path)
+		# 		ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
+		# 		ziped_path = Polylines::Encoder.encode_points(ziped_points)
+		# 	  @path = ziped_path
+		# 	end
+		# 	@steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
+		# 		GoogleMaps::Step.new(step, index, threads, opts)
+		# 	end
+		# 	threads << Thread.new do
+		# 		@staticmap_url = GoogleMaps::Wraper.staticmap(@markers, @path, :url)
+		# 		staticmap if opts[:preload] == "true"
+		# 	end
+		# end
 
 		def as_json opts = {}
-			super({methods: [:step_numbers, :overview, :name]}.merge(opts))
+			super({methods: [:step_numbers, :overview]}.merge(opts))
 		end
 
 		def staticmap
@@ -171,28 +184,86 @@ module GoogleMaps
 		end
 
 		def name
-			@steps.map(&:overview).compact.uniq.join(', ')
+			@name ||= @steps.map(&:overview).compact.uniq.join(', ')
+			@name
+		end
+
+		def self.parse_googlemaps_data json_object, threads, opts = {}
+			route = new
+			route.origin = json_object.legs[0].start_address
+			route.destination = json_object.legs[0].end_address
+			route.distance = json_object.legs[0].distance.value / 1000.0
+			route.duration = (json_object.legs[0].duration.value / 60.0).round(1)
+			route.markers = json_object.legs[0].steps.map do |step|
+				step.start_location.as_json.values.join(',')
+			end << json_object.legs[0].steps.last.end_location.as_json.values.join(',')
+			route.path = json_object.overview_polyline.points
+			escaped_path_size = CGI.escape(route.path).size
+			if escaped_path_size > 1800
+				points = Polylines::Decoder.decode_polyline(route.path)
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
+				ziped_path = Polylines::Encoder.encode_points(ziped_points)
+			  route.path = ziped_path
+			end
+			route.steps = json_object.legs[0].steps.map.with_index(1) do |step, index|
+				GoogleMaps::Step.parse_googlemaps_data(step, index, threads, opts)
+			end
+			threads << Thread.new do
+				route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
+				staticmap if opts[:preload] == "true"
+			end
+			route
+		end
+
+		def self.parse_rome2rio_data data
+			route = new
+			route.origin = data.segments.first.sName
+			route.destination = data.segments.last.tName
+			route.distance = data.distance
+			route.duration = data.duration
+			route.markers = data.segments.map do |seg|
+				seg.sPos.as_json.values.join(',')
+			end << data.segments.last.tPos.as_json.values.join(',')
+			points = data.segments.inject([]) do |res, seg|
+				res += Polylines::Decoder.decode_polyline(seg.path)
+			end
+			pp points
+			path = Polylines::Encoder.encode_points(points)
+			escaped_path_size = CGI.escape(path).size
+			if escaped_path_size > 1800
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
+				ziped_path = Polylines::Encoder.encode_points(ziped_points)
+			  route.path = ziped_path
+			else
+				route.path = path
+			end
+			route.steps = data.segments.map.with_index(1) do |seg, i|
+				GoogleMaps::Step.parse_rome2rio_data(seg, i)
+			end
+			route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
+			route
 		end
 	end
 
 	class Step < Serializers
-		attr_reader :step_number, :distance, :duration ,:start_location, :end_location, :path, :transit_details, :html_instructions, :travel_mode, :staticmap_url
+		attr_accessor :step_number, :distance, :duration ,:start_location, :end_location, :path, :transit_details, :html_instructions, :travel_mode, :staticmap_url
 
-		def initialize json_object, number, threads, opts = {}
-			@step_number = number
-			@distance = json_object.distance.value / 1000.0
-			@duration = (json_object.duration.value / 60.0).round(1)
-			@start_location = json_object.start_location.as_json.values.join(',')
-			@end_location = json_object.end_location.as_json.values.join(',')
-			@path = json_object.polyline.points
-			escaped_path_size = CGI.escape(path).size
+		def self.parse_googlemaps_data json_object, number, threads, opts = {}
+			step = new
+			step.step_number = number
+			step.distance = json_object.distance.value / 1000.0
+			step.duration = (json_object.duration.value / 60.0).round(1)
+			step.start_location = json_object.start_location.as_json.values.join(',')
+			step.end_location = json_object.end_location.as_json.values.join(',')
+			step.path = json_object.polyline.points
+			escaped_path_size = CGI.escape(step.path).size
 			if escaped_path_size > 1800
-				points = Polylines::Decoder.decode_polyline(path)
+				points = Polylines::Decoder.decode_polyline(step.path)
 				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
-			  @path = ziped_path
+			  step.path = ziped_path
 			end
-			@transit_details = json_object.transit_details.instance_eval do
+			step.transit_details = json_object.transit_details.instance_eval do
 				if self
 					{
 						departure: departure_stop.name,
@@ -206,18 +277,57 @@ module GoogleMaps
 					{}
 				end
 			end
-			@html_instructions = json_object.steps.to_a.inject([json_object.html_instructions]){|res, s| res << s.html_instructions }.compact
-			@travel_mode = json_object.travel_mode
-			@map_size = case distance
+			step.html_instructions = json_object.steps.to_a.inject([json_object.html_instructions]){|res, s| res << s.html_instructions }.compact
+			step.travel_mode = json_object.travel_mode
+			map_size = case step.distance
 			when 0...1
 				'200x200'
 			else
 				'500x500'
 			end
 			threads << Thread.new do
-				@staticmap_url = GoogleMaps::Wraper.staticmap([@start_location, @end_location], @path, :url, size: @map_size)
+				step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
 				staticmap if opts[:preload] == "true"
 			end
+			step
+		end
+
+		def self.parse_rome2rio_data data, number
+			step = new
+			step.step_number = number
+			step.distance = data.distance
+			step.duration = data.duration
+			step.start_location = data.sPos.as_json.values.join(',')
+			step.end_location = data.tPos.as_json.values.join(',')
+			step.path = data.path
+			escaped_path_size = CGI.escape(step.path).size
+			if escaped_path_size > 1800
+				points = Polylines::Decoder.decode_polyline(path)
+				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
+				ziped_path = Polylines::Encoder.encode_points(ziped_points)
+			  step.path = ziped_path
+			end
+			step.transit_details = begin
+				data.itineraries.first.legs.first.hops.first.instance_eval do
+					{
+						departure: sName,
+						arrival: tName,
+						name: lines.first.name,
+						vehicle: lines.first.vehicle
+					}
+				end
+			rescue Exception => e
+				{}
+			end
+			step.travel_mode = data.kind
+			map_size = case step.distance
+			when 0...1
+				'200x200'
+			else
+				'500x500'
+			end
+			step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
+			step
 		end
 
 		def staticmap
@@ -226,15 +336,15 @@ module GoogleMaps
 
 		def overview
 			case @travel_mode
-			when 'WALKING'
-				if @html_instructions.size > 1
+			when 'WALKING', 'walk'
+				if @html_instructions == nil || @html_instructions.size > 1
 					'步行'
 				else
 					nil
 				end
-			when 'DRIVING'
+			when 'DRIVING', 'car'
 				'驾车'
-			when 'TRANSIT'
+			when 'TRANSIT', 'bus', 'train'
 				@transit_details[:name]
 			end
 		end
