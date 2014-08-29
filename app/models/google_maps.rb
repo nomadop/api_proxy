@@ -4,7 +4,7 @@ module GoogleMaps
 	UrlThresholdBase = 0.0007 / 2000
 
 	class Wraper
-		HOST = 'http://maps.googleapis.com'
+		HOST = 'https://maps.googleapis.com'
 		KEYS = ['AIzaSyAfy5gDr5-vhv0_ZF_BOQHA4_Fx-6sGJAU',
 						'AIzaSyBPLzOXa6a-fLACftN7qLXvxzCyduKGb0M',
 						'AIzaSyBgw09mhfPKR1Ded7RIAn7zveSCum2bf20',
