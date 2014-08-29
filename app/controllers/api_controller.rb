@@ -57,32 +57,6 @@ class ApiController < ApplicationController
 					when Rome2rio::SearchResponse
 						direction = GoogleMaps::Direction.parse_rome2rio_data(res)
 						data = direction.as_json.merge({'provider' => 'Rome2rio'})
-						# threads = []
-						# res.routes.map(&:segments).flatten.each do |seg|
-						# 	seg.class.send(:attr_reader, :staticmap_url) unless seg.respond_to?(:staticmap_url)
-						# 	seg.class.send(:attr_reader, :staticmap) unless seg.respond_to?(:staticmap)
-						# 	escaped_path_size = CGI.escape(seg.path).size
-						# 	if escaped_path_size > 1800
-						# 		points = Polylines::Decoder.decode_polyline(seg.path)
-						# 		ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
-						# 		ziped_path = Polylines::Encoder.encode_points(ziped_points)
-						# 		seg.instance_variable_set :@path, ziped_path
-						# 	end
-						# 	map_size = case seg.distance
-						# 	when 0...1
-						# 		'200x200'
-						# 	else
-						# 		'500x500'
-						# 	end
-						# 	threads << Thread.new do 
-						# 		seg.instance_variable_set(:@staticmap_url, GoogleMaps::Wraper.staticmap([seg.sPos.to_s, seg.tPos.to_s], seg.path, :url, size: map_size)).gsub(/%5B%5D/, '')
-						# 		if params[:preload] == 'true'
-						# 			seg.instance_variable_set(:@staticmap, Base64.strict_encode64(GoogleMaps::Wraper.staticmap(seg.staticmap_url)))
-						# 		end
-						# 	end
-						# end
-						# threads.each { |t| t.join }
-						# data = { 'origin' => origin, 'destination' => destination, 'routes' => res.routes.select{|r| r.name != 'Walk' && r.name != 'Taxi'}.as_json, 'provider' => 'Rome2rio' }
 					when Hash
 						data = { 'origin' => nil, 'destination' => nil, 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
 					else

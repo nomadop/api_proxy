@@ -212,11 +212,13 @@ module GoogleMaps
 				route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
 				staticmap if opts[:preload] == "true"
 			end
+			route.name
 			route
 		end
 
 		def self.parse_rome2rio_data data
 			route = new
+			route.name = data.name
 			route.origin = data.segments.first.sName
 			route.destination = data.segments.last.tName
 			route.distance = data.distance
@@ -328,6 +330,12 @@ module GoogleMaps
 			end
 			step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
 			step
+		end
+
+		def as_json *args
+			json = super
+			json.delete('transit_details') if json['transit_details'] == {}
+			json
 		end
 
 		def staticmap
