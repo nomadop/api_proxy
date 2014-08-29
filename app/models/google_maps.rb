@@ -5,7 +5,10 @@ module GoogleMaps
 
 	class Wraper
 		HOST = 'http://maps.googleapis.com'
-		KEYS = []
+		KEYS = ['AIzaSyAfy5gDr5-vhv0_ZF_BOQHA4_Fx-6sGJAU',
+						'AIzaSyBPLzOXa6a-fLACftN7qLXvxzCyduKGb0M',
+						'AIzaSyBgw09mhfPKR1Ded7RIAn7zveSCum2bf20',
+						'AIzaSyDvg0BiuEgxxZuf20Bhujw6jYO0BzLYsO0']
 		PROXY = ''
 
 		@@current = 0
@@ -24,6 +27,7 @@ module GoogleMaps
 					origin: o_name,
 					destination: d_name
 				}.merge(opts)
+				c.params[:key] = key unless KEYS.empty?
 				c.params[:departure_time] = Date.today.to_time.to_i + 10.hours if c.params[:mode] == 'transit'
 			end
 			response = conn.try(:get, '/maps/api/directions/json')
