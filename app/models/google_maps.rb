@@ -278,6 +278,7 @@ module GoogleMaps
 						headsign: headsign,
 						name: [line.name, line.short_name].compact.join(' '),
 						vehicle: line.vehicle.type,
+						icon: line.vehicle.icon,
 						stops: num_stops
 					}
 				else
