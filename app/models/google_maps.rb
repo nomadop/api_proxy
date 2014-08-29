@@ -310,7 +310,7 @@ module GoogleMaps
 			step.path = data.path
 			escaped_path_size = CGI.escape(step.path).size
 			if escaped_path_size > 1800
-				points = Polylines::Decoder.decode_polyline(path)
+				points = Polylines::Decoder.decode_polyline(step.path)
 				ziped_points = DouglasPeucker::LineSimplifier.new(points).threshold(escaped_path_size * GoogleMaps::UrlThresholdBase).points
 				ziped_path = Polylines::Encoder.encode_points(ziped_points)
 			  step.path = ziped_path
