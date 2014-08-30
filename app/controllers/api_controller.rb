@@ -55,7 +55,7 @@ class ApiController < ApplicationController
 					res = Rome2rio::Connection.new.search(rome2rio_params)
 					case res
 					when Rome2rio::SearchResponse
-						direction = GoogleMaps::Direction.parse_rome2rio_data(res)
+						direction = GoogleMaps::Direction.parse_rome2rio_data(res, preload: params[:preload])
 						data = direction.as_json.merge({'provider' => 'Rome2rio'})
 					when Hash
 						data = { 'origin' => nil, 'destination' => nil, 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	

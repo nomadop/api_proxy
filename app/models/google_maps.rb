@@ -131,12 +131,14 @@ module GoogleMaps
 			return self
 		end
 
-		def self.parse_rome2rio_data data
+		def self.parse_rome2rio_data data, opts = {}
 			direction = new
 			direction.status = 'OK'
+			threads = []
 			direction.routes = data.routes.map do |r|
-				GoogleMaps::Route.parse_rome2rio_data(r)
+				GoogleMaps::Route.parse_rome2rio_data(r, threads, opts)
 			end
+			threads.each { |t| t.join }
 			direction
 		end
 	end
@@ -221,7 +223,7 @@ module GoogleMaps
 			route
 		end
 
-		def self.parse_rome2rio_data data
+		def self.parse_rome2rio_data data, threads, opts = {}
 			route = new
 			route.name = data.name
 			route.origin = data.segments.first.sName
@@ -245,9 +247,12 @@ module GoogleMaps
 				route.path = path
 			end
 			route.steps = data.segments.map.with_index(1) do |seg, i|
-				GoogleMaps::Step.parse_rome2rio_data(seg, i)
+				GoogleMaps::Step.parse_rome2rio_data(seg, i, threads, opts)
 			end
-			route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
+			threads << Thread.new do
+				route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
+				staticmap if opts[:preload] == "true"
+			end
 			route
 		end
 	end
@@ -300,7 +305,7 @@ module GoogleMaps
 			step
 		end
 
-		def self.parse_rome2rio_data data, number
+		def self.parse_rome2rio_data data, number, threads, opts = {}
 			step = new
 			step.step_number = number
 			step.distance = data.distance
@@ -334,7 +339,10 @@ module GoogleMaps
 			else
 				'500x500'
 			end
-			step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
+			threads << Thread.new do
+				step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
+				staticmap if opts[:preload] == "true"
+			end
 			step
 		end
 
