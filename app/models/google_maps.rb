@@ -217,7 +217,7 @@ module GoogleMaps
 			end
 			threads << Thread.new do
 				route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
-				staticmap if opts[:preload] == "true"
+				route.staticmap if opts[:preload] == "true"
 			end
 			route.name
 			route
@@ -251,7 +251,7 @@ module GoogleMaps
 			end
 			threads << Thread.new do
 				route.staticmap_url = GoogleMaps::Wraper.staticmap(route.markers, route.path, :url)
-				staticmap if opts[:preload] == "true"
+				route.staticmap if opts[:preload] == "true"
 			end
 			route
 		end
@@ -300,7 +300,7 @@ module GoogleMaps
 			end
 			threads << Thread.new do
 				step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
-				staticmap if opts[:preload] == "true"
+				step.staticmap if opts[:preload] == "true"
 			end
 			step
 		end
@@ -341,7 +341,7 @@ module GoogleMaps
 			end
 			threads << Thread.new do
 				step.staticmap_url = GoogleMaps::Wraper.staticmap([step.start_location, step.end_location], step.path, :url, size: map_size)
-				staticmap if opts[:preload] == "true"
+				step.staticmap if opts[:preload] == "true"
 			end
 			step
 		end
