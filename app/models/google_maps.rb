@@ -115,7 +115,7 @@ module GoogleMaps
 		end
 	end
 
-	class Place
+	class Place < Serializers
 		attr_accessor :name, :lat, :lng, :id, :place_id, :reference, :types, :vicinity
 
 		def self.stations_in city_name
@@ -125,7 +125,7 @@ module GoogleMaps
 			radius = mid.distance_to(sb.sw)
 			params = {
 				location: mid.ll,
-				radius: radius,
+				radius: (radius * 1000).round(0),
 				types: 'subway_station|transit_station|train_station'
 			}
 			results = GoogleMaps::Wraper.place(:nearbysearch, params)
