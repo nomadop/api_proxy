@@ -118,16 +118,16 @@ module GoogleMaps
 	class Place < Serializers
 		attr_accessor :name, :lat, :lng, :id, :place_id, :reference, :types, :vicinity
 
-		def initialize json
-			json.deep_symbolize_keys!
-			@name      = json[:name]
-			@lat       = json[:geometry][:location][:lat]
-			@lng       = json[:geometry][:location][:lng]
-			@id        = json[:id]
-			@place_id  = json[:place_id]
-			@reference = json[:reference]
-			@types     = json[:types]
-			@vicinity  = json[:vicinity]
+		def initialize json_object
+			json_object.deep_symbolize_keys!
+			@name      = json_object.name
+			@lat       = json_object.geometry.location.lat
+			@lng       = json_object.geometry.location.lng
+			@id        = json_object.id
+			@place_id  = json_object.place_id
+			@reference = json_object.reference
+			@types     = json_object.types
+			@vicinity  = json_object.vicinity
 		end
 
 		def self.stations_in city_name
