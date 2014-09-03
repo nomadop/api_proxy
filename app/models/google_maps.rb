@@ -20,10 +20,10 @@ module GoogleMaps
 			KEYS[@@current]
 		end
 
-		def self.place opts = {}
+		def self.place method, opts = {}
 			conn = Conn.init(HOST)
 			c.params = opts.merge({key: key})
-			response = conn.try(:get, '/maps/api/place/details/json')
+			response = conn.try(:get, '/maps/api/place/#{method}/json')
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
 			end

@@ -2,6 +2,10 @@ class ApiController < ApplicationController
   # protect_from_forgery :only  => []
   require 'pp'
 
+  def place
+  	render json: GoogleMaps::Wraper.place(params[:method], place_params)
+  end
+
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
@@ -84,6 +88,10 @@ class ApiController < ApplicationController
 	private
 		def geocode_params
 			params.permit(:bias)
+		end
+
+		def place_params
+			params.permit(:keyword, :minprice, :maxprice, :language, :location, :name, :opennow, :query, :radius, :rankby, :sensor, :types, :pagetoken, :zagatselected)
 		end
 
 		def direction_params
