@@ -20,6 +20,16 @@ module GoogleMaps
 			KEYS[@@current]
 		end
 
+		def self.place opts = {}
+			conn = Conn.init(HOST)
+			c.params = opts.merge({key: key})
+			response = conn.try(:get, '/maps/api/place/details/json')
+			while response.status == 301
+				response = conn.try(:get, response.headers['location'])
+			end
+			JSONObject.new(response.body)
+		end
+
 		def self.direction o_name, d_name, opts = {}
 			conn = Conn.init(HOST) do |c|
 				c.options[:proxy] = PROXY unless PROXY.blank?
