@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+  get 'api/stations_in'
   get 'api/place'
   get 'api/direction'
   get 'api/proxy'

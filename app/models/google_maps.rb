@@ -118,6 +118,18 @@ module GoogleMaps
 	class Place < Serializers
 		attr_accessor :name, :lat, :lng, :id, :place_id, :reference, :types, :vicinity
 
+		def initialize json
+			json.deep_symbolize_keys!
+			@name      = json[:name]
+			@lat       = json[:geometry][:location][:lat]
+			@lng       = json[:geometry][:location][:lng]
+			@id        = json[:id]
+			@place_id  = json[:place_id]
+			@reference = json[:reference]
+			@types     = json[:types]
+			@vicinity  = json[:vicinity]
+		end
+
 		def self.stations_in city_name
 			loc = GeocodeApi.geocode(city_name, :google)
 			sb = loc.suggested_bounds
@@ -128,7 +140,13 @@ module GoogleMaps
 				radius: (radius * 1000).round(0),
 				types: 'subway_station|transit_station|train_station'
 			}
-			results = GoogleMaps::Wraper.place(:nearbysearch, params)
+			data = GoogleMaps::Wraper.place(:nearbysearch, params)
+			stations = data.results.map { |r| new(r) }
+			while data.next_page_token
+				data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
+				stations += data.results.map { |r| new(r) }
+			end
+			stations
 		end
 	end
 

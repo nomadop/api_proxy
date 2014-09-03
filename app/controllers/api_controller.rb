@@ -2,6 +2,10 @@ class ApiController < ApplicationController
   # protect_from_forgery :only  => []
   require 'pp'
 
+  def stations_in
+  	render json: GoogleMaps::Place.stations_in(params[:q])
+  end
+
   def place
   	render json: GoogleMaps::Wraper.place(params[:method], place_params)
   end
