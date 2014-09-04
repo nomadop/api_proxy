@@ -116,24 +116,66 @@ module GoogleMaps
 		end
 	end
 
-	class RoundBounds < Struct.new(:location, :radius); end
+	class RoundBounds < Struct.new(:location, :radius); 
+		def edge_points precision = 1.0
+			edge_points = 0.0.step(359.9, precision).map do |heading|
+				loc = location.endpoint(heading, radius)
+				[loc.lat, loc.lng]
+			end
+			edge_points << edge_points[0]
+		end
+
+		def edge_path precision = 1.0
+			Polylines::Encoder.encode_points(edge_points(precision))
+		end
+	end
 
 	Geokit::Bounds.class_eval do
-		def to_round_bounds size = 1
-			mid = sw.midpoint_to(ne)
-			case size
-			when 1
+		def edge_points
+			es = Geokit::GeoLoc.normalize(sw.lat, ne.lng)
+			wn = Geokit::GeoLoc.normalize(ne.lat, sw.lng)
+			edge_points = [sw, wn, ne, es, sw].map{ |l| [l.lat, l.lng] }
+		end
+
+		def edge_path
+			Polylines::Encoder.encode_points(edge_points)
+		end
+
+		def to_round_bounds div = 0
+			case div
+			when 0
+				mid = sw.midpoint_to(ne)
 				GoogleMaps::RoundBounds.new(mid, mid.distance_to(sw))
-			when 4
-				wn = Geokit::GeoLoc.normalize(sw.lat, ne.lng)
-				es = Geokit::GeoLoc.normalize(ne.lat, sw.lng)
-				[sw, wn, ne, es].map do |corner|
-					sub_mid = mid.midpoint_to(corner)
-					GoogleMaps::RoundBounds.new(sub_mid, sub_mid.distance_to(corner))
-				end
 			else
-				raise ArgumentError.new("size must be `1' or `4'")
+				splited_bounds = split(div)
+				splited_bounds.map do |bounds|
+					bounds.to_round_bounds
+				end
 			end
+		end
+
+		def split div = 1
+			es = Geokit::GeoLoc.normalize(sw.lat, ne.lng)
+			wn = Geokit::GeoLoc.normalize(ne.lat, sw.lng)
+			h = sw.distance_to(wn)
+			w = sw.distance_to(es)
+			if h < w
+				hdiv = div
+				wdiv = (div * w / h).round(0)
+			else
+				hdiv = (div * h / w).round(0)
+				wdiv = div
+			end
+			hstep = h / hdiv
+			wstep = w / wdiv
+
+			hdiv.times.map do |i|
+				wdiv.times.map do |j|
+					subsw = sw.endpoint(0.0, hstep * i).endpoint(90.0, wstep * j)
+					subne = sw.endpoint(0.0, hstep * (i + 1)).endpoint(90.0, wstep * (j + 1))
+					Geokit::Bounds.new(subsw, subne)
+				end
+			end.flatten
 		end
 	end
 
@@ -152,10 +194,10 @@ module GoogleMaps
 			@vicinity  = json_object.vicinity
 		end
 
-		def self.stations_in city_name
+		def self.stations_in city_name, div
 			loc = GeocodeApi.geocode(city_name, :google)
 			sb = loc.suggested_bounds
-			rbs = sb.to_round_bounds(4)
+			rbs = sb.to_round_bounds(div)
 			rbs.map do |rb|
 				params = {
 					location: rb.location.ll,
