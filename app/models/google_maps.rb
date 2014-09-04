@@ -142,12 +142,12 @@ module GoogleMaps
 				types: 'subway_station|transit_station|train_station'
 			}
 			data = GoogleMaps::Wraper.place(:nearbysearch, params)
-			# stations = data.results.map { |r| new(r) }
-			# while data.next_page_token
-			# 	data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
-			# 	stations += data.results.map { |r| new(r) }
-			# end
-			# stations
+			stations = data.results.map { |r| new(r) }
+			while data.next_page_token != nil
+				data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
+				stations += data.results.map { |r| new(r) }
+			end
+			stations
 		end
 	end
 
