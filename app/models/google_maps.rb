@@ -125,8 +125,8 @@ module GoogleMaps
 			when 1
 				GoogleMaps::RoundBounds.new(mid, mid.distance_to(sw))
 			when 4
-				wn = Geokit::Geoloc.new(sw.lat, ne.lon)
-				es = Geokit::Geoloc.new(ne.lat, sw.lon)
+				wn = Geokit::GeoLoc.normalize(sw.lat, ne.lon)
+				es = Geokit::GeoLoc.normalize(ne.lat, sw.lon)
 				[sw, wn, ne, es].map do |corner|
 					sub_mid = mid.midpoint_to(corner)
 					GoogleMaps::RoundBounds.new(sub_mid, sub_mid.distance_to(corner))
