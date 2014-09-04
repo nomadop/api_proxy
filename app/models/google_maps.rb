@@ -246,6 +246,26 @@ module GoogleMaps
 			return self
 		end
 
+		def self.query_from_rome2rio origin, destination, opts = {}
+			ll_regexp = /-?\d+.\d+\,-?\d+.\d+/
+			rome2rio_params = {key: 'INyVvCSX', flags: '0x0000000F'}
+			rome2rio_params.merge!(if origin =~ ll_regexp
+									{oPos: origin, dPos: destination}
+								else
+									{oName: origin, dName: destination}
+								end)
+			res = Rome2rio::Connection.new.search(rome2rio_params)
+			case res
+			when Rome2rio::SearchResponse
+				direction = GoogleMaps::Direction.parse_rome2rio_data(res, opts)
+				data = direction.as_json.merge({'provider' => 'Rome2rio'})
+			when Hash
+				data = { 'origin' => origin, 'destination' => destination, 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
+			else
+				raise 'unknown error'
+			end
+		end
+
 		def self.parse_rome2rio_data data, opts = {}
 			direction = new
 			direction.status = 'OK'

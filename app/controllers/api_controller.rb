@@ -52,28 +52,24 @@ class ApiController < ApplicationController
 			provider = params[:p] || params[:provider]
 			if origin && destination
 				case provider
-				when 'rome2rio'
-					ll_regexp = /-?\d+.\d+\,-?\d+.\d+/
-					rome2rio_params = {key: 'INyVvCSX', flags: '0x0000000F'}
-					rome2rio_params.merge!(if origin =~ ll_regexp
-											{oPos: origin, dPos: destination}
-										else
-											{oName: origin, dName: destination}
-										end)
-					res = Rome2rio::Connection.new.search(rome2rio_params)
-					case res
-					when Rome2rio::SearchResponse
-						direction = GoogleMaps::Direction.parse_rome2rio_data(res, preload: params[:preload])
-						data = direction.as_json.merge({'provider' => 'Rome2rio'})
-					when Hash
-						data = { 'origin' => nil, 'destination' => nil, 'routes' => [], 'response' => res, 'provider' => 'Rome2rio' }	
-					else
-						raise 'unknown error'
-					end
-				else # default provider = GoogleMaps
+				when /rome2rio/i
+					direction = GoogleMaps::Direction.query_from_rome2rio(origin, destination, direction_params)
+					data = direction.as_json.merge({'provider' => 'Rome2rio'})
+				when /google/i
 					direction = GoogleMaps::Direction.new(origin, destination, direction_params)
 					direction.query
 					data = direction.as_json.merge({'provider' => 'GoogleMaps'})
+				else
+					direction = GoogleMaps::Direction.new(origin, destination, direction_params)
+					direction.query
+					gdata = direction.as_json
+					gdata['routes'].each { |r| r.merge!({'provider' => 'GoogleMaps'}) }
+					direction = GoogleMaps::Direction.query_from_rome2rio(origin, destination, direction_params)
+					rdata = direction.as_json
+					rdata['routes'].each { |r| r.merge!({'provider' => 'Rome2rio'}) }
+					gdata['routes'] += rdata['routes']
+					gdata['routes'].sort_by { |r| r['duration'] }
+					data = gdata
 				end
 				@response = { status: 200, data: data }
 			else
