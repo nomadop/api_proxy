@@ -145,6 +145,7 @@ module GoogleMaps
 			npt = data.next_page_token
 			stations = data.results.map { |r| new(r) }
 			while npt != nil
+				sleep 1
 				data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
 				npt = data.next_page_token if data.status != "INVALID_REQUEST"
 				stations += data.results.map { |r| new(r) }
