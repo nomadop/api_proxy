@@ -155,23 +155,24 @@ module GoogleMaps
 		def self.stations_in city_name
 			loc = GeocodeApi.geocode(city_name, :google)
 			sb = loc.suggested_bounds
-			mid = sb.sw.midpoint_to(sb.ne)
-			radius = mid.distance_to(sb.sw)
-			params = {
-				location: mid.ll,
-				radius: (radius * 1000).round(0),
-				types: 'subway_station|transit_station|train_station'
-			}
-			data = GoogleMaps::Wraper.place(:nearbysearch, params)
-			npt = data.next_page_token
-			stations = data.results.map { |r| new(r) }
-			while npt != nil
-				sleep 1
-				data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: npt)
-				npt = data.next_page_token if data.status != "INVALID_REQUEST"
-				stations += data.results.map { |r| new(r) }
-			end
-			stations
+			rbs = sb.to_round_bounds(4)
+			rbs.map do |rb|
+				params = {
+					location: rb.location.ll,
+					radius: (rb.radius * 1000).round(0),
+					types: 'subway_station|transit_station|train_station'
+				}
+				data = GoogleMaps::Wraper.place(:nearbysearch, params)
+				npt = data.next_page_token
+				stations = data.results.map { |r| new(r) }
+				while npt != nil
+					sleep 1
+					data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: npt)
+					npt = data.next_page_token if data.status != "INVALID_REQUEST"
+					stations += data.results.map { |r| new(r) }
+				end
+				stations
+			end.flatten
 		end
 	end
 
