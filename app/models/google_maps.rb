@@ -116,6 +116,27 @@ module GoogleMaps
 		end
 	end
 
+	class RoundBounds < Struct.new(:location, :radius); end
+
+	Geokit::Bounds.class_eval do
+		def to_round_bounds size = 1
+			mid = sw.midpoint_to(ne)
+			case size
+			when 1
+				GoogleMaps::RoundBounds.new(mid, mid.distance_to(sw))
+			when 4
+				wn = Geokit::Geoloc.new(sw.lat, ne.lon)
+				es = Geokit::Geoloc.new(ne.lat, sw.lon)
+				[sw, wn, ne, es].map do |corner|
+					sub_mid = mid.midpoint_to(corner)
+					GoogleMaps::RoundBounds.new(sub_mid, sub_mid.distance_to(corner))
+				end
+			else
+				raise ArgumentError.new("size must be `1' or `4'")
+			end
+		end
+	end
+
 	class Place < Serializers
 		attr_accessor :name, :lat, :lng, :id, :place_id, :reference, :types, :vicinity
 

@@ -7,7 +7,7 @@ class JSONObject
 		end
 	end
 
-	def __attrs__
+	def __vars__
 		self.instance_variables.map{|var| var[1..-1].to_sym}
 	end
 
