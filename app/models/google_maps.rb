@@ -11,7 +11,7 @@ module GoogleMaps
 		# 				'AIzaSyDvg0BiuEgxxZuf20Bhujw6jYO0BzLYsO0',
 		# 				'AIzaSyA7swEwrzDr0SYSqA1lLtuo9RI6CbCIwtA']
 		KEYS = ['AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0']
-		PROXY = ''
+		PROXY = 'https://127.0.0.1'
 
 		@@current = 0
 
@@ -23,6 +23,7 @@ module GoogleMaps
 
 		def self.place method, opts = {}
 			conn = Conn.init(HOST)
+			# conn.options[:proxy] = PROXY
 			conn.params = opts.merge({key: key})
 			response = conn.try(:get, "/maps/api/place/#{method}/json")
 			while response.status == 301
@@ -33,7 +34,7 @@ module GoogleMaps
 
 		def self.direction o_name, d_name, opts = {}
 			conn = Conn.init(HOST) do |c|
-				c.options[:proxy] = PROXY unless PROXY.blank?
+				# c.options[:proxy] = PROXY
 				c.headers['Accept-Language'] = 'zh-CN,zh'
 				c.params = {
 					origin: o_name,
@@ -141,12 +142,12 @@ module GoogleMaps
 				types: 'subway_station|transit_station|train_station'
 			}
 			data = GoogleMaps::Wraper.place(:nearbysearch, params)
-			stations = data.results.map { |r| new(r) }
-			while data.next_page_token
-				data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
-				stations += data.results.map { |r| new(r) }
-			end
-			stations
+			# stations = data.results.map { |r| new(r) }
+			# while data.next_page_token
+			# 	data = GoogleMaps::Wraper.place(:nearbysearch, pagetoken: data.next_page_token)
+			# 	stations += data.results.map { |r| new(r) }
+			# end
+			# stations
 		end
 	end
 
