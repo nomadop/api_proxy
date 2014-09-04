@@ -24,7 +24,7 @@ module GoogleMaps
 		def self.place method, opts = {}
 			conn = Conn.init(HOST)
 			# conn.options[:proxy] = PROXY
-			conn.params = opts.merge({key: key})
+			conn.params = opts.merge({key: 'AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0'})
 			response = conn.try(:get, "/maps/api/place/#{method}/json")
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
