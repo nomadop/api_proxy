@@ -69,7 +69,7 @@ class ApiController < ApplicationController
 					rdata['routes'].each { |r| r.merge!({'provider' => 'Rome2rio'}) }
 					gdata['routes'] += rdata['routes']
 					gdata['routes'].sort_by! { |r| r['duration'] }
-					data = gdata
+					data = gdata.merge({'provider' => 'Mixed'})
 				end
 				@response = { status: 200, data: data }
 			else
