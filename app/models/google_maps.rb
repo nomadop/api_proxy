@@ -171,6 +171,7 @@ module GoogleMaps
 					npt = data.next_page_token if data.status != "INVALID_REQUEST"
 					stations += data.results.map { |r| new(r) }
 				end
+				pp "Found #{stations.size} stations."
 				stations
 			end.flatten
 		end
