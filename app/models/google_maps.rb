@@ -5,12 +5,12 @@ module GoogleMaps
 
 	class Wraper
 		HOST = 'https://maps.googleapis.com'
-		# KEYS = ['AIzaSyAfy5gDr5-vhv0_ZF_BOQHA4_Fx-6sGJAU',
-		# 				'AIzaSyBPLzOXa6a-fLACftN7qLXvxzCyduKGb0M',
-		# 				'AIzaSyBgw09mhfPKR1Ded7RIAn7zveSCum2bf20',
-		# 				'AIzaSyDvg0BiuEgxxZuf20Bhujw6jYO0BzLYsO0',
-		# 				'AIzaSyA7swEwrzDr0SYSqA1lLtuo9RI6CbCIwtA']
-		KEYS = ['AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0']
+		KEYS = ['AIzaSyAfy5gDr5-vhv0_ZF_BOQHA4_Fx-6sGJAU',
+						'AIzaSyBPLzOXa6a-fLACftN7qLXvxzCyduKGb0M',
+						'AIzaSyBgw09mhfPKR1Ded7RIAn7zveSCum2bf20',
+						'AIzaSyDvg0BiuEgxxZuf20Bhujw6jYO0BzLYsO0',
+						'AIzaSyA7swEwrzDr0SYSqA1lLtuo9RI6CbCIwtA']
+		# KEYS = ['AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0']
 		PROXY = 'https://127.0.0.1'
 
 		@@current = 0
