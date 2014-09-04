@@ -68,7 +68,7 @@ class ApiController < ApplicationController
 					rdata = direction.as_json
 					rdata['routes'].each { |r| r.merge!({'provider' => 'Rome2rio'}) }
 					gdata['routes'] += rdata['routes']
-					gdata['routes'].sort_by { |r| r['duration'] }
+					gdata['routes'].sort_by! { |r| r['duration'] }
 					data = gdata
 				end
 				@response = { status: 200, data: data }
