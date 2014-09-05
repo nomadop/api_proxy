@@ -34,7 +34,7 @@ module GoogleApis
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
 			end
-			JSONObject.new(response.body)
+			response
 		end
 	end
 
