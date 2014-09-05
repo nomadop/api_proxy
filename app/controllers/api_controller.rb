@@ -3,13 +3,14 @@ class ApiController < ApplicationController
   require 'pp'
 
   def translate
-  	case params[:provider]
+  	provider = params[:provider] || params[:p]
+  	case provider
   	when /google.*api/
   		render json: GoogleApis::Wraper.translate(translate_params)
   	when /google.*web/
   		render json: GoogleApis::Crawler.translate(translate_params)
   	else
-  		raise ArgumentError.new("unknown provider `#{params[:provider]}'")
+  		render json: "unknown provider `#{params[:provider]}'"
   	end
   end
 
@@ -33,7 +34,7 @@ class ApiController < ApplicationController
  		end
  			
   	loc = GeocodeApi.geocode(query, api.to_sym, bias: bias)
-  	render json: loc
+  	render json: loc.as_json.merge({suggested_bounds: loc.suggested_bounds})
   end
 
   def proxy
