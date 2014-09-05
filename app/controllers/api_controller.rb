@@ -2,6 +2,10 @@ class ApiController < ApplicationController
   # protect_from_forgery :only  => []
   require 'pp'
 
+  def translate
+  	render json: GoogleApis::Wraper.translate(translate_params)
+  end
+
   def stations_in
   	render json: GoogleMaps::Place.stations_in(params[:q])
   end
@@ -86,6 +90,10 @@ class ApiController < ApplicationController
 	end
 
 	private
+		def translate_params
+			params.permit(:callback, :format, :prettyprint, :q, :source, :target)
+		end
+
 		def geocode_params
 			params.permit(:bias)
 		end
