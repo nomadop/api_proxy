@@ -51,3 +51,5 @@ gem 'nokogiri'
 
 gem 'polylines'
 gem 'douglas_peucker', git: 'https://github.com/joshuaclayton/douglas_peucker.git'
+
+gem 'mechanize'
