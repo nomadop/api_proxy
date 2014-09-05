@@ -20,4 +20,18 @@ module GoogleApis
 			JSONObject.new(response.body)
 		end
 	end
+
+	module Crawler
+		HOST = 'https://www.google.com/'
+
+		def self.translate params = {}
+			conn = Conn.init('https://translate.google.com')
+			conn.params = params
+			response = conn.try(:get, "/translate_a/single")
+			while response.status == 301
+				response = conn.try(:get, response.headers['location'])
+			end
+			JSONObject.new(response.body)
+		end
+	end
 end

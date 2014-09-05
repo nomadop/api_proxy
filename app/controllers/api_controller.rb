@@ -3,7 +3,14 @@ class ApiController < ApplicationController
   require 'pp'
 
   def translate
-  	render json: GoogleApis::Wraper.translate(translate_params)
+  	case params[:provider]
+  	when /google.*api/
+  		render json: GoogleApis::Wraper.translate(translate_params)
+  	when /google.*web/
+  		render json: GoogleApis::Crawler.translate(translate_params)
+  	else
+  		raise ArgumentError.new("unknown provider `#{params[:provider]}'")
+  	end
   end
 
   def stations_in
@@ -91,7 +98,7 @@ class ApiController < ApplicationController
 
 	private
 		def translate_params
-			params.permit(:callback, :format, :prettyprint, :q, :source, :target)
+			params.permit(:callback, :format, :prettyprint, :q, :source, :sl, :target, :tl)
 		end
 
 		def geocode_params
