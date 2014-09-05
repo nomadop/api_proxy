@@ -21,13 +21,30 @@ module GoogleApis
 		end
 	end
 
-	class Crawler < Crawler
-		HOST = 'https://www.google.com/'
-
+	module Crawler
 		def self.translate params = {}
-			crawler = new
-			crawler.goto('https://translate.google.com/')
-			crawler.get('https://translate.google.com/translate_a/single', params)
+			conn = Conn.init('https://translate.google.com')
+			conn.params = {
+				sl: params[:source],
+				tl: params[:target],
+				text: params[:q],
+				client: 't' 
+			}
+			response = conn.try(:get, "/translate_a/t")
+			while response.status == 301
+				response = conn.try(:get, response.headers['location'])
+			end
+			JSONObject.new(response.body)
 		end
 	end
+
+	# class Crawler < Crawler
+	# 	HOST = 'https://www.google.com/'
+
+	# 	def self.translate params = {}
+	# 		crawler = new
+	# 		crawler.goto('https://translate.google.com/')
+	# 		crawler.get('https://translate.google.com/translate_a/single', params)
+	# 	end
+	# end
 end
