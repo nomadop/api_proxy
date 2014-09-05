@@ -25,8 +25,8 @@ module GoogleApis
 		def self.translate params = {}
 			conn = Conn.init('https://translate.google.com')
 			conn.params = {
-				sl: params[:source],
-				tl: params[:target],
+				sl: params[:source] || params[:sl],
+				tl: params[:target] || params[:tl],
 				text: params[:q],
 				client: 't' 
 			}
@@ -34,7 +34,7 @@ module GoogleApis
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
 			end
-			response
+			JSON.parse(response.body.gsub(/,+/, ','))[0][0][0]
 		end
 	end
 
