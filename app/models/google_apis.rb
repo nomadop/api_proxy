@@ -13,7 +13,7 @@ module GoogleApis
 		def self.translate params = {}
 			conn = Conn.init(HOST)
 			conn.params = params.merge({key: key})
-			response = conn.try(:get, "/maps/api/place/#{method}/json")
+			response = conn.try(:get, "/language/translate/v2")
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
 			end
