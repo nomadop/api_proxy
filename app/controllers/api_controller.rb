@@ -81,6 +81,17 @@ class ApiController < ApplicationController
 					rdata['routes'].each { |r| r.merge!({'provider' => 'Rome2rio'}) }
 					gdata['routes'] += rdata['routes']
 					gdata['routes'].sort_by! { |r| r['duration'] }
+					gdata['routes'].sort_by! do |r|
+						mode = r['steps'].map{|s| s['travel_mode']}.uniq.join
+						case mode
+						when /TRANSIT/, /train/, /bus/, /ferry/
+							1
+						when /DRIVING/, /car/
+							2
+						when /WALKING/, /walk/
+							3
+						end
+					end
 					data = gdata.merge({'provider' => 'Mixed'})
 				end
 				@response = { status: 200, data: data }
