@@ -80,16 +80,23 @@ class ApiController < ApplicationController
 					rdata = direction.as_json
 					rdata['routes'].each { |r| r.merge!({'provider' => 'Rome2rio'}) }
 					gdata['routes'] += rdata['routes']
-					gdata['routes'].sort_by! { |r| r['duration'] }
-					gdata['routes'].sort_by! do |r|
-						mode = r['steps'].map{|s| s['travel_mode']}.uniq.join
-						case mode
-						when /TRANSIT/, /train/, /bus/, /ferry/
-							1
-						when /DRIVING/, /car/
-							2
-						when /WALKING/, /walk/
-							3
+					# gdata['routes'].sort_by! { |r| r['duration'] }
+					# gdata['routes'].sort_by! do |r|
+					# 	mode = r['steps'].map{|s| s['travel_mode']}.uniq.join
+					# 	case mode
+					# 	when /TRANSIT/, /train/, /bus/, /ferry/
+					# 		1
+					# 	when /DRIVING/, /car/
+					# 		2
+					# 	when /WALKING/, /walk/
+					# 		3
+					# 	end
+					# end
+					gdata['routes'].sort! do |a, b|
+						if travel_level(a) == travel_level(b)
+							a['duration'] <=> b['duration']
+						else
+							travel_level(a) <=> travel_level(b)
 						end
 					end
 					data = gdata.merge({'provider' => 'Mixed'})
@@ -109,6 +116,18 @@ class ApiController < ApplicationController
 	end
 
 	private
+		def travel_level route
+			mode = route['steps'].map{|s| s['travel_mode']}.uniq.join
+			case mode
+			when /TRANSIT/, /train/, /bus/, /ferry/
+				1
+			when /DRIVING/, /car/
+				2
+			when /WALKING/, /walk/
+				3
+			end
+		end
+
 		def translate_params
 			params.permit(:callback, :format, :prettyprint, :q, :source, :sl, :target, :tl)
 		end
