@@ -5,26 +5,13 @@ module GoogleMaps
 
 	class Wraper
 		HOST = 'https://maps.googleapis.com'
-		KEYS = ['AIzaSyAfy5gDr5-vhv0_ZF_BOQHA4_Fx-6sGJAU',
-						'AIzaSyBPLzOXa6a-fLACftN7qLXvxzCyduKGb0M',
-						'AIzaSyBgw09mhfPKR1Ded7RIAn7zveSCum2bf20',
-						'AIzaSyDvg0BiuEgxxZuf20Bhujw6jYO0BzLYsO0',
-						'AIzaSyA7swEwrzDr0SYSqA1lLtuo9RI6CbCIwtA']
 		# KEYS = ['AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0']
 		PROXY = 'https://127.0.0.1'
-
-		@@current = 0
-
-		def self.key
-			@@current += 1
-			@@current = 0 if @@current >= KEYS.size
-			KEYS[@@current]
-		end
 
 		def self.place method, opts = {}
 			conn = Conn.init(HOST)
 			# conn.options[:proxy] = PROXY
-			conn.params = opts.merge({key: 'AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0'})
+			conn.params = opts.merge({key: GoogleApis.key})
 			response = conn.try(:get, "/maps/api/place/#{method}/json")
 			while response.status == 301
 				response = conn.try(:get, response.headers['location'])
@@ -40,7 +27,7 @@ module GoogleMaps
 					origin: o_name,
 					destination: d_name
 				}.merge(opts)
-				c.params[:key] = key unless KEYS.empty?
+				c.params[:key] = GoogleApis.key
 				c.params[:departure_time] = Date.today.to_time.to_i + 10.hours if c.params[:mode] == 'transit'
 			end
 			response = conn.try(:get, '/maps/api/directions/json')
@@ -67,7 +54,7 @@ module GoogleMaps
 				accept = args[2]
 				opts = args[3] || {}
 				conn = Conn.init(HOST) do |c|
-					c.options[:proxy] = PROXY unless PROXY.blank?
+					# c.options[:proxy] = PROXY
 					c.params = {
 						size: '500x500',
 						scale: 2,
@@ -82,6 +69,7 @@ module GoogleMaps
 				when :url
 					"#{HOST}/maps/api/staticmap?#{conn.params.to_param}".gsub(/%5B%5D/, '')
 				when :data
+					conn.params[:key] = GoogleApis.key
 					response = conn.try(:get, '/maps/api/staticmap')
 					response = GoogleMaps::Wraper.staticmap(response.headers['location']) if response.status == 301
 					response.body
