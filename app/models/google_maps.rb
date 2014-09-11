@@ -107,26 +107,79 @@ module GoogleMaps
 	class RoundBounds < Struct.new(:location, :radius); 
 		def edge_points precision = 1.0
 			edge_points = 0.0.step(359.9, precision).map do |heading|
-				loc = location.endpoint(heading, radius)
-				[loc.lat, loc.lng]
+				location.endpoint(heading, radius)
 			end
 			edge_points << edge_points[0]
 		end
 
 		def edge_path precision = 1.0
-			Polylines::Encoder.encode_points(edge_points(precision))
+			Polylines::Encoder.encode_points(edge_points(precision).map(&:to_a))
+		end
+
+		def to_params opts = {}
+			default_opts = {
+				marker_color: '0xff0000',
+				marker_size: 'small',
+				path_color: '0xff0000',
+				path_weight: 2
+			}
+			options = default_opts.merge(opts)
+			{
+				markers: "size:#{options[:marker_size]}|color:#{options[:marker_color]}|#{location.ll}",
+				path: "color:#{options[:path_color]}|weight:#{options[:path_weight]}|enc:#{CGI.escape(edge_path(10.0))}"
+			}.map{|k, v| "#{k}=#{v}"}.join('&')
 		end
 	end
 
 	Geokit::Bounds.class_eval do
+		def width
+			@width ||= (begin
+							a = sw.heading_to(ne)
+							d = sw.distance_to(ne)
+							r = a * Math::PI / 180.0
+							Math.sin(r) * d
+						end)
+			@width
+		end
+
+		def height
+			@height ||= (begin
+							a = sw.heading_to(ne)
+							d = sw.distance_to(ne)
+							r = a * Math::PI / 180.0
+							Math.cos(r) * d
+						end)
+			@height
+		end
+
+		def wn
+			sw.endpoint(0.0, height)
+		end
+
+		def es
+			sw.endpoint(90.0, width)
+		end
+
 		def edge_points
-			es = Geokit::GeoLoc.normalize(sw.lat, ne.lng)
-			wn = Geokit::GeoLoc.normalize(ne.lat, sw.lng)
-			edge_points = [sw, wn, ne, es, sw].map{ |l| [l.lat, l.lng] }
+			[sw, wn, ne, es]
 		end
 
 		def edge_path
-			Polylines::Encoder.encode_points(edge_points)
+			Polylines::Encoder.encode_points(edge_points.map(&:to_a) << sw.to_a)
+		end
+
+		def to_params opts = {}
+			default_opts = {
+				marker_color: '0xff0000',
+				marker_size: 'small',
+				path_color: '0xff0000',
+				path_weight: 2
+			}
+			options = default_opts.merge(opts)
+			{
+				markers: "size:#{options[:marker_size]}|color:#{options[:marker_color]}|#{edge_points.map(&:ll).join('|')}",
+				path: "color:#{options[:path_color]}|weight:#{options[:path_weight]}|enc:#{edge_path}"
+			}.map{|k, v| "#{k}=#{v}"}.join('&')
 		end
 
 		def to_round_bounds div = 0
@@ -143,19 +196,15 @@ module GoogleMaps
 		end
 
 		def split div = 1
-			es = Geokit::GeoLoc.normalize(sw.lat, ne.lng)
-			wn = Geokit::GeoLoc.normalize(ne.lat, sw.lng)
-			h = sw.distance_to(wn)
-			w = sw.distance_to(es)
-			if h < w
+			if height < width
 				hdiv = div
-				wdiv = (div * w / h).round(0)
+				wdiv = (div * width / height).round(0)
 			else
-				hdiv = (div * h / w).round(0)
+				hdiv = (div * height / width).round(0)
 				wdiv = div
 			end
-			hstep = h / hdiv
-			wstep = w / wdiv
+			hstep = height / hdiv
+			wstep = width / wdiv
 
 			hdiv.times.map do |i|
 				wdiv.times.map do |j|
