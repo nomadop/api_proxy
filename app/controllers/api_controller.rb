@@ -1,5 +1,5 @@
 class ApiController < ApplicationController
-  # protect_from_forgery :only  => []
+  protect_from_forgery except: :proxy
   require 'pp'
 
   def translate
