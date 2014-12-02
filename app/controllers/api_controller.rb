@@ -2,6 +2,10 @@ class ApiController < ApplicationController
   protect_from_forgery except: :proxy
   require 'pp'
 
+  def panoramio
+    render json: Panoramio.get_panoramas_from_point(params[:lat], params[:lng])
+  end
+
   def translate
   	provider = params[:provider] || params[:p]
   	case provider

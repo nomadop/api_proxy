@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+  get 'api/panoramio'
   get 'api/translate'
   get 'api/stations_in'
   get 'api/place'
