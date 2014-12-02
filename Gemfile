@@ -39,7 +39,7 @@ gem 'spring',        group: :development
 # Use debugger
 # gem 'debugger', group: [:development, :test]
 
-gem 'geokit', git: 'https://github.com/geokit/geokit.git'
+gem 'geokit'#, git: 'https://github.com/geokit/geokit.git'
 
 gem 'faraday'
 
@@ -52,4 +52,4 @@ gem 'nokogiri'
 gem 'polylines'
 gem 'douglas_peucker', git: 'https://github.com/joshuaclayton/douglas_peucker.git'
 
-gem 'mechanize'
+gem 'redis'

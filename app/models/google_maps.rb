@@ -4,7 +4,7 @@ module GoogleMaps
 	UrlThresholdBase = 0.0007 / 2000
 
 	class Wraper
-		HOST = 'https://maps.googleapis.com'
+		HOST = 'https://ditu.google.cn'
 		# KEYS = ['AIzaSyAXngIRBBzOVy_k9OIjEn9rW33FPCEJ6C0']
 		PROXY = 'https://127.0.0.1'
 
@@ -43,7 +43,7 @@ module GoogleMaps
 				# Params: url
 				url = args[0]
 				res = nil
-				Net::HTTP.start('maps.googleapis.com') do |http|
+				Net::HTTP.start('ditu.google.cn') do |http|
 					res = http.get('/' + url.split('/')[3..-1].join('/'))
 				end
 				res.body
