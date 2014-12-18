@@ -39,16 +39,14 @@ module GoogleMaps
 
 		def self.staticmap *args
 			case args.size
-			when 1
-				# Params: url
+			when 1 # Params: url
 				url = args[0]
 				res = nil
 				Net::HTTP.start('maps.googleapis.com') do |http|
 					res = http.get('/' + url.split('/')[3..-1].join('/'))
 				end
 				res.body
-			when 2..4
-				# Params: markers, path, accept, opts = {}
+			when 2..4 # Params: markers, path, accept, opts = {}
 				markers = args[0]
 				path = args[1]
 				accept = args[2]

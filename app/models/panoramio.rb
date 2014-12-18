@@ -43,6 +43,6 @@ module Panoramio
       :maxx => points[3] 
     })
     res = self.get_panoramas(options)
-    res['photos'].map{|p| Photo.new(p)}.sort_by{|x| center.distance_to(x.location)}.first(20)
+    res['photos'].map{ |p| Photo.new(p) }.sort_by{ |x| center.distance_to(x.location) }.first(20)
   end
 end

@@ -3,7 +3,8 @@ class ApiController < ApplicationController
   require 'pp'
 
   def panoramio
-    render json: Panoramio.get_panoramas_from_point(params[:lat], params[:lng])
+    lat, lng = params.delete(:lat), params.delete(:lng)
+    render json: Panoramio.get_panoramas_from_point(lat, lng, 10, params)
   end
 
   def translate
