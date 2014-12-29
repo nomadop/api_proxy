@@ -26,7 +26,7 @@ module Panoramio
     panoramio_options.merge!(options)
     response = Faraday.new.get(URL, panoramio_options)
     if response.status == 200
-      parse_data = JSON.parse(response.body.match(/.*\((.*)\)/)[1])
+      parse_data = JSON.parse(response.body)
     else
       raise "Panoramio API error: #{response.code}. Response #{response.to_str}"
     end
