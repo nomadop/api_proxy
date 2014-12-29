@@ -3,10 +3,10 @@ class ApiController < ApplicationController
   require 'pp'
 
   def panoramio
-    lat, lng = params.delete(:lat), params.delete(:lng)
+    lat, lng, callback = params.delete(:lat), params.delete(:lng), params.delete(:callback)
     data = Panoramio.get_panoramas_from_point(lat, lng, 10, params)
-    if params[:callback]
-      render text: "#{params[:callback]}(#{data.to_json})"
+    if callback
+      render text: "#{callback}(#{data.to_json})"
     else
       render json: data
     end
