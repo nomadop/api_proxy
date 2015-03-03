@@ -35,6 +35,7 @@ class ApiController < ApplicationController
   def geocode
   	query = params[:q] || params[:query]
   	api = params[:api] || 'google'
+    callback = params[:callback]
   	bias = if params[:bias]
   		params[:bias]
  		elsif params[:bounds]
@@ -44,7 +45,12 @@ class ApiController < ApplicationController
  		end
  			
   	loc = GeocodeApi.geocode(query, api.to_sym, bias: bias)
-  	render json: loc.as_json.merge({suggested_bounds: loc.suggested_bounds})
+  	data = loc.as_json.merge({suggested_bounds: loc.suggested_bounds})
+    if callback
+      render text: "#{callback}(#{data.to_json})"
+    else
+      render json: data
+    end
   end
 
   def proxy

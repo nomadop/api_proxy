@@ -5,7 +5,7 @@ class GeocodeApi
 		bing: 'Ao9yUqipvyK9Gyt1jZEiolDPDNQ4evUSSKlvUN7t0rx0iiD-u9uMNeHsojrRyNVY',
 		geonames: 'nomadop'
 	}
-	RegApis = [:google, :map_quest, :bing, :geonames]
+	RegApis = [:google, :map_quest, :bing, :geonames, :multi]
 	
 	def self.geocode address, api, opts = {}
 		raise 'No such api' unless RegApis.include?(api.to_sym)
