@@ -33,18 +33,19 @@ class ApiController < ApplicationController
   end
 
   def geocode
-  	query = params[:q] || params[:query]
-  	api = params[:api] || 'google'
-    callback = params[:callback]
+  	query = params.delete(:q) || params.delete(:query)
+  	api = params.delete(:api) || 'google'
+    callback = params.delete(:callback)
   	bias = if params[:bias]
-  		params[:bias]
+  		params.delete(:bias)
  		elsif params[:bounds]
- 			Geokit::Geocoders::GoogleGeocoder.geocode(params[:bounds]).suggested_bounds
+ 			Geokit::Geocoders::GoogleGeocoder.geocode(params.delete(:bounds)).suggested_bounds
  		else
  			nil
  		end
- 			
-  	loc = GeocodeApi.geocode(query, api.to_sym, bias: bias)
+ 		
+    params[:bias] = bias
+  	loc = GeocodeApi.geocode(query, api.to_sym, params)
   	data = loc.as_json.merge({suggested_bounds: loc.suggested_bounds})
     if callback
       render text: "#{callback}(#{data.to_json})"
